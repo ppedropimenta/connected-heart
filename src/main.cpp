@@ -1,19 +1,24 @@
-//
-// Created by caju2 on 25/07/2026.
-//
 #include <Arduino.h>
 
+#include <App/Application.h>
+#include <Core/Log.h>
+
+namespace {
+    Application app;
+}
+
 void setup() {
-    Serial.begin(115200);
+    LOG_INFO("System started");
+    LOG_DEBUG("Free heap: %u bytes", ESP.getFreeHeap());
 
-    delay(5000);
-
-    Serial.println();
-    Serial.println("SETUP EXECUTADO");
+    app.begin();
 }
 
 void loop() {
-    Serial.printf("ESP32 alive pai pain: %lu ms\n", millis());
+    app.update();
+
+    Serial.println("ESP32 alive");
     Serial.flush();
+
     delay(1000);
 }
