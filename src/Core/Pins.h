@@ -34,6 +34,27 @@ namespace Pins {
     constexpr Pin GPIO_9  = 9;
     constexpr Pin GPIO_10 = 10;
 
+    namespace Display {
+        constexpr Pin BUSY = GPIO_3;
+        constexpr Pin SCK  = GPIO_4;
+        constexpr Pin DC   = GPIO_1;
+        constexpr Pin MOSI = GPIO_6;
+        constexpr Pin CS   = GPIO_7;
+        constexpr Pin RST  = GPIO_10;
+    }
+
+    namespace NotificationLed {
+        constexpr Pin DATA = GPIO_2;
+    }
+
+    namespace Touch {
+        constexpr Pin SIGNAL = GPIO_3;
+    }
+
+    namespace Battery {
+        constexpr Pin VOLTAGE_ADC = GPIO_0;
+    }
+
     // Onboard hardware
     /**
      * Blue onboard LED.

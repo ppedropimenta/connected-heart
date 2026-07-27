@@ -8,17 +8,16 @@ namespace {
 }
 
 void setup() {
-    LOG_INFO("System started");
-    LOG_DEBUG("Free heap: %u bytes", ESP.getFreeHeap());
+    Serial.begin(115200);
+    delay(500);
+    
+    LOG_INFO("Connected Heart starting");
 
     app.begin();
+
+    LOG_INFO("Application initialized");
 }
 
 void loop() {
     app.update();
-
-    Serial.println("ESP32 alive");
-    Serial.flush();
-
-    delay(1000);
 }

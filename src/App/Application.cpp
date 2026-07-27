@@ -1,25 +1,21 @@
 #include "Application.h"
 
-#include <Arduino.h>
-
 #include "Core/Log.h"
 
 void Application::begin() {
-    Serial.begin(115200);
-
-    delay(1000);
-
-    LOG_INFO("Application starting");
+    LOG_INFO("Initializing application modules");
 
     for (Module* module : modules_) {
-        module->begin();
+        if (module != nullptr) {
+            module->begin();
+        }
     }
-
-    LOG_INFO("Application initialized");
 }
 
 void Application::update() {
     for (Module* module : modules_) {
-        module->update();
+        if (module != nullptr) {
+            module->update();
+        }
     }
 }
