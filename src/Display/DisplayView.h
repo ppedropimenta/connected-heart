@@ -1,0 +1,8 @@
+//
+// Created by caju2 on 30/07/2026.
+//
+
+#ifndef FIRMWARE_DISPLAYVIEW_H
+#define FIRMWARE_DISPLAYVIEW_H
+
+#endif //FIRMWARE_DISPLAYVIEW_H

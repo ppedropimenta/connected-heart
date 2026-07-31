@@ -6,39 +6,16 @@
 #pragma once
 
 #include "Core/Module.h"
+#include "Led/LedPattern.h"
 
-class Led final : public Module {
+class Led : public Module {
 public:
-    enum class State {
-        Off,
-        On
-    };
-
     void begin() override;
     void update() override;
 
-    /**
-     * @brief Turns the LED on.
-     */
-    void on();
-
-    /**
-     * @brief Turns the LED off.
-     */
-    void off();
-
-    /**
-     * @brief Toggles the LED state.
-     */
-    void toggle();
-
-    void setState(State state);
-
-    /**
-     * @brief Returns whether the LED is currently on.
-     */
-    [[nodiscard]] State getState() const;
+    void setPattern(LedPattern pattern);
 
 private:
-    State state_ = State::Off;
+    LedPattern pattern_ = LedPattern::Off;
+    unsigned long patternStartedAt_ = 0;
 };

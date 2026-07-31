@@ -1,7 +1,5 @@
 #include "EpaperDisplay.h"
 
-#include <Display/EpaperDisplay.h>
-
 #include <Fonts/FreeMono9pt7b.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 

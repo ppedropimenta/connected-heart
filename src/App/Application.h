@@ -8,11 +8,14 @@
 
 #pragma once
 
-#include <array>
-
-#include "Core/Module.h"
 #include "Display/EpaperDisplay.h"
 #include "Led/Led.h"
+#include "../Touch/TouchSensor.h"
+#include "../Message/MessageManager.h"
+#include "../State/DeviceState.h"
+#include "../State/StateMachine.h"
+#include "../State/DeviceEvent.h"
+#include "../Communication/SerialMessageSource.h"
 
 class Application {
 public:
@@ -20,11 +23,20 @@ public:
     void update();
 
 private:
-    Led led_;
-    EpaperDisplay display_;
+    void processInputs();
+    void processTimers();
+    void processEvent(DeviceEvent event);
 
-    std::array<Module*, 2> modules_{
-        &led_,
-        &display_
-    };
+    void enterState(DeviceState state);
+
+    StateMachine stateMachine_;
+    MessageManager messageManager_;
+
+    EpaperDisplay display_;
+    Led led_;
+    TouchSensor touch_;
+
+    SerialMessageSource messageSource_;
+
+    unsigned long stateEnteredAt_ = 0;
 };

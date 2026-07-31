@@ -33,6 +33,8 @@ namespace Pins {
     constexpr Pin GPIO_8  = 8;
     constexpr Pin GPIO_9  = 9;
     constexpr Pin GPIO_10 = 10;
+    constexpr Pin GPIO_20 = 20;
+    constexpr Pin GPIO_21 = 21;
 
     namespace Display {
         constexpr Pin BUSY = GPIO_3;
@@ -44,11 +46,11 @@ namespace Pins {
     }
 
     namespace NotificationLed {
-        constexpr Pin DATA = GPIO_2;
+        constexpr Pin LED_DATA = GPIO_20;
     }
 
     namespace Touch {
-        constexpr Pin SIGNAL = GPIO_3;
+        constexpr Pin TOUCH = GPIO_21;
     }
 
     namespace Battery {

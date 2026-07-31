@@ -9,8 +9,7 @@
 
 #pragma once
 
-class Module
-{
+class Module {
 public:
     virtual ~Module() = default;
 
