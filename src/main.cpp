@@ -10,7 +10,7 @@ namespace {
 void setup() {
     Serial.begin(115200);
     delay(500);
-    
+
     LOG_INFO("Connected Heart starting");
 
     app.begin();
@@ -21,3 +21,4 @@ void setup() {
 void loop() {
     app.update();
 }
+

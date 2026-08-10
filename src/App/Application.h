@@ -36,7 +36,5 @@ private:
     Led led_;
     TouchSensor touch_;
 
-    SerialMessageSource messageSource_;
-
     unsigned long stateEnteredAt_ = 0;
 };
