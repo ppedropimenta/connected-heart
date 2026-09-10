@@ -6,26 +6,13 @@
 #include "Core/Log.h"
 #include "Display/EpaperDisplay.h"
 #include "Display/EpaperDisplayRenderer.h"
-#include "Led/Led.h"
+#include "Led/NeoPixelLed.h"
 #include "Touch/GpioTouchSensor.h"
 
 namespace {
-    /**
-     * @brief Led with no hardware behind it yet.
-     *
-     * Application requires a concrete Led to be constructed; the real
-     * NeoPixel implementation arrives in ticket 06.
-     */
-    class NullLed final : public Led {
-    public:
-        void begin() override {}
-        void update() override {}
-        void show(LedPattern) override {}
-    };
-
     EpaperDisplay display;
     EpaperDisplayRenderer renderer(display);
-    NullLed led;
+    NeoPixelLed led;
     GpioTouchSensor touch;
     SerialMessageSource messageSource;
     ArduinoClock clock;

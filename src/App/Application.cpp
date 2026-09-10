@@ -2,6 +2,7 @@
 
 #include "Core/Config.h"
 #include "Core/Log.h"
+#include "Led/LedPatternSelector.h"
 #include "Message/MessageCatalog.h"
 
 Application::Application(
@@ -30,6 +31,13 @@ void Application::begin(const bool provisioned) {
 void Application::update() {
     processInputs();
     processTimers();
+
+    /*
+     * Application only calls led_.show() on state entry (a new pattern);
+     * a rhythm like a breathe or a blink needs continuous frames in
+     * between to animate.
+     */
+    led_.update();
 }
 
 void Application::processInputs() {
@@ -119,22 +127,18 @@ void Application::enterState(const DeviceState state) {
 
         case DeviceState::Waking:
             renderer_.showConnecting();
-            led_.show(LedPattern::Connecting);
             break;
 
         case DeviceState::WaitingForMessage:
             renderer_.showWaitingForMessage(ConnectionState::Connected);
-            led_.show(LedPattern::Off);
             break;
 
         case DeviceState::Notification:
             renderer_.showNotification(ConnectionState::Connected);
-            led_.show(LedPattern::NotificationPulse);
             break;
 
         case DeviceState::RevealingMessage:
             renderer_.showRevealHeart(ConnectionState::Connected);
-            led_.show(LedPattern::RevealHeartbeat);
             break;
 
         case DeviceState::DisplayingMessage: {
@@ -144,8 +148,11 @@ void Application::enterState(const DeviceState state) {
                 message != nullptr ? MessageCatalog::resolve(*message) : "",
                 ConnectionState::Connected
             );
-            led_.show(LedPattern::Off);
             break;
         }
+    }
+
+    if (state != DeviceState::Boot) {
+        led_.show(LedPatternSelector::select(state, ConnectionState::Connected));
     }
 }

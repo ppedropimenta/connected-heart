@@ -13,7 +13,19 @@ namespace Config
      */
     constexpr unsigned long RevealDurationMs = 400;
     constexpr unsigned long TouchDebounceMs = 75;
+
+    /**
+     * Rhythm timings for the notification LED. LedPulsePeriodMs is the
+     * Notification pulse referenced by ADR/spec as "the existing pulse
+     * period"; the rest are provisional pending hardware tuning, per
+     * ticket 06.
+     */
     constexpr unsigned long LedPulsePeriodMs = 1600;
+    constexpr unsigned long LedSetupBreathePeriodMs = 3200;
+    constexpr unsigned long LedConnectingBlinkPeriodMs = 400;
+    constexpr unsigned long LedRevealThumpPeriodMs = 900;
+    constexpr unsigned long LedConnectionErrorBlinkPeriodMs = 3000;
+    constexpr unsigned long LedConnectionErrorBlinkOnMs = 150;
 
     /**
      * Consecutive failed connection attempts before the heart gives up and

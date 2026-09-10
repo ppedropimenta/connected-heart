@@ -259,6 +259,7 @@ void test_unprovisioned_boot_starts_in_setup() {
     app.begin(false);
 
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
+    assertLedPattern(LedPattern::Setup, led.lastPattern);
 }
 
 void test_provisioned_boot_starts_waking() {
@@ -284,10 +285,12 @@ void test_provisioning_finished_moves_setup_to_waking() {
 
     app.begin(false);
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
+    assertLedPattern(LedPattern::Setup, led.lastPattern);
 
     app.notifyProvisioningFinished();
 
     assertScreen(FakeDisplayRenderer::Screen::Connecting, renderer.lastScreen);
+    assertLedPattern(LedPattern::Connecting, led.lastPattern);
 }
 
 void test_connection_attempts_exhausted_from_waking_returns_to_setup() {
@@ -298,6 +301,7 @@ void test_connection_attempts_exhausted_from_waking_returns_to_setup() {
     exhaustConnectionAttempts(fixture);
 
     assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::Setup, fixture.led.lastPattern);
 }
 
 void test_connection_attempts_exhausted_from_waiting_for_message_returns_to_setup() {
