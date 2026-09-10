@@ -161,6 +161,58 @@ void test_message_during_reveal_returns_to_notification_instead_of_displaying() 
     TEST_ASSERT_EQUAL_STRING("Segunda mensagem", fixture.renderer.lastMessageText.c_str());
 }
 
+void test_reveal_does_not_finish_before_duration_elapses() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+
+    fixture.clock.advance(Config::RevealDurationMs - 1);
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::RevealHeartbeat, fixture.led.lastPattern);
+}
+
+void test_touch_during_reveal_does_nothing() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+}
+
+void test_touch_while_message_displayed_does_nothing() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Primeira mensagem", fixture.renderer.lastMessageText.c_str());
+}
+
 void test_predefined_message_resolves_to_catalog_wording() {
     Fixture fixture;
 
@@ -318,6 +370,9 @@ int main(int argc, char** argv) {
     RUN_TEST(test_message_while_pending_replaces_it);
     RUN_TEST(test_message_while_displayed_interrupts_it);
     RUN_TEST(test_message_during_reveal_returns_to_notification_instead_of_displaying);
+    RUN_TEST(test_reveal_does_not_finish_before_duration_elapses);
+    RUN_TEST(test_touch_during_reveal_does_nothing);
+    RUN_TEST(test_touch_while_message_displayed_does_nothing);
     RUN_TEST(test_predefined_message_resolves_to_catalog_wording);
     RUN_TEST(test_message_over_limit_is_rejected);
     RUN_TEST(test_touch_without_pending_message_does_nothing);

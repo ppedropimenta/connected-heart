@@ -4,7 +4,14 @@
 
 namespace Config
 {
-    constexpr unsigned long RevealDurationMs = 1500;
+    /**
+     * How long the heart-alone reveal screen holds before the message is
+     * drawn. Each full e-paper refresh already takes roughly two seconds,
+     * so this is a deliberate pause on top of that anticipation, not the
+     * whole of it. Provisional pending confirmation on the real panel;
+     * see ticket 05.
+     */
+    constexpr unsigned long RevealDurationMs = 400;
     constexpr unsigned long TouchDebounceMs = 75;
     constexpr unsigned long LedPulsePeriodMs = 1600;
 

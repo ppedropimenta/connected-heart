@@ -7,7 +7,7 @@
 #include "Display/EpaperDisplay.h"
 #include "Display/EpaperDisplayRenderer.h"
 #include "Led/Led.h"
-#include "Touch/TouchSensor.h"
+#include "Touch/GpioTouchSensor.h"
 
 namespace {
     /**
@@ -23,23 +23,10 @@ namespace {
         void show(LedPattern) override {}
     };
 
-    /**
-     * @brief TouchSensor that never reports a press.
-     *
-     * Application requires a concrete TouchSensor to be constructed; the
-     * real debounced GPIO21 implementation arrives in ticket 05.
-     */
-    class NullTouchSensor final : public TouchSensor {
-    public:
-        void begin() override {}
-        void update() override {}
-        bool wasPressed() override { return false; }
-    };
-
     EpaperDisplay display;
     EpaperDisplayRenderer renderer(display);
     NullLed led;
-    NullTouchSensor touch;
+    GpioTouchSensor touch;
     SerialMessageSource messageSource;
     ArduinoClock clock;
 
