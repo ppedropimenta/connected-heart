@@ -21,7 +21,8 @@ public:
     bool wasPressed() override;
 
 private:
-    [[nodiscard]] bool rawState() const;
+    [[nodiscard]]
+    bool rawState() const;
 
     bool stableState_ = false;
     bool lastRawState_ = false;
