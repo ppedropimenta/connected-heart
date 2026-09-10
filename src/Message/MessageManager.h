@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "HeartMessage.h"
 
 /**
@@ -18,8 +20,8 @@ public:
      * If another pending message already exists, it is replaced.
      * The currently displayed message is preserved.
      *
-     * Custom messages with empty text are rejected.
-     * Text attached to predefined messages is ignored.
+     * Custom messages with empty text, or text over the length limit,
+     * are rejected.
      *
      * @param message Message to store.
      *
@@ -63,13 +65,38 @@ public:
 
 private:
     /**
+     * @brief Holds at most one HeartMessage without heap allocation.
+     *
+     * HeartMessage has no default constructor, so it cannot sit in a plain
+     * member to represent "no message" — absence is tracked by this slot
+     * being empty, not by an in-band invalid message value. This would be
+     * std::optional<HeartMessage>, but this project's toolchain builds at
+     * -std=gnu++11, which predates it.
+     */
+    class Slot {
+    public:
+        Slot() = default;
+        ~Slot();
+
+        Slot(const Slot&) = delete;
+        Slot& operator=(const Slot&) = delete;
+
+        void set(const HeartMessage& message);
+        void reset();
+
+        [[nodiscard]] bool present() const { return present_; }
+        [[nodiscard]] const HeartMessage* get() const;
+
+    private:
+        alignas(HeartMessage) unsigned char storage_[sizeof(HeartMessage)];
+        bool present_ = false;
+    };
+
+    /**
      * @brief Checks whether a received message satisfies the model rules.
      */
     static bool isValid(const HeartMessage& message);
 
-    HeartMessage pending_;
-    HeartMessage current_;
-
-    bool hasPending_ = false;
-    bool hasCurrent_ = false;
+    Slot pending_;
+    Slot current_;
 };

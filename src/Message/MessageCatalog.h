@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Arduino.h>
-
-#include "MessageType.h"
+#include "Feeling.h"
 
 class MessageCatalog {
 public:
-    static String textFor(MessageType type);
+    static const char* textFor(Feeling feeling);
 };

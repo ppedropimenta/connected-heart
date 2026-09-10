@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include <cstddef>
 
 namespace Config
 {
@@ -8,5 +8,9 @@ namespace Config
     constexpr unsigned long TouchDebounceMs = 75;
     constexpr unsigned long LedPulsePeriodMs = 1600;
 
-    constexpr size_t MaximumMessageLength = 180;
+    /**
+     * Counted in displayed characters after transliteration, not in bytes,
+     * so accented Portuguese is not penalised. See MessageManager.
+     */
+    constexpr size_t MaximumMessageLength = 85;
 }

@@ -1,48 +1,83 @@
 #pragma once
 
-#include <Arduino.h>
+#include <cstddef>
+#include <cstring>
 
-#include "MessageType.h"
+#include "Feeling.h"
+#include "MessageKind.h"
+#include "Core/Config.h"
 
 /**
- * @brief Represents a message received by Connected Heart.
+ * @brief A single piece of affection sent to a Connected Heart.
  *
- * For a custom message, text contains the message that should be displayed.
- *
- * For a predefined message, text remains empty and the corresponding
- * Portuguese text is resolved later by MessageCatalog.
+ * A HeartMessage carries either text (a Custom Message) or a Feeling
+ * (a Predefined Message), never both and never neither. There is no way
+ * to construct one in an incomplete state.
  */
 struct HeartMessage {
-    MessageType type = MessageType::Custom;
-    String text;
+    /**
+     * Byte capacity of the text buffer. Sized for the worst case of
+     * MaximumMessageLength *displayed* characters that are all
+     * transliterated accented letters, which occupy two UTF-8 bytes apiece
+     * (see TextMetrics) — not simply MaximumMessageLength + 1 bytes, which
+     * would let this constructor silently truncate a message that is
+     * within the displayed-character limit before MessageManager ever
+     * gets to measure it.
+     */
+    static constexpr size_t TextCapacity = (Config::MaximumMessageLength * 2) + 1;
 
     /**
-     * @brief Creates an empty custom message.
+     * @brief Creates a Predefined Message carrying the given Feeling.
      */
-    HeartMessage() = default;
+    explicit HeartMessage(const Feeling feeling)
+        : kind_(MessageKind::Predefined)
+    {
+        payload_.feeling = feeling;
+    }
 
     /**
-     * @brief Creates a predefined message.
+     * @brief Creates a Custom Message carrying its own text.
      *
-     * The text remains empty because predefined messages are resolved
-     * through MessageCatalog.
-     *
-     * @param messageType Type of the predefined message.
+     * @param text Null-terminated text to display. Must not be null.
+     * Text beyond TextCapacity - 1 bytes is truncated.
      */
-    explicit HeartMessage(MessageType messageType)
-        : type(messageType),
-          text()
-    {}
+    explicit HeartMessage(const char* text)
+        : kind_(MessageKind::Custom)
+    {
+        std::strncpy(payload_.text, text, TextCapacity - 1);
+        payload_.text[TextCapacity - 1] = '\0';
+    }
+
+    [[nodiscard]] MessageKind kind() const { return kind_; }
 
     /**
-     * @brief Creates a custom message.
+     * @brief The Feeling this message carries.
      *
-     * @param customText Text that should be displayed.
+     * Only meaningful when kind() is MessageKind::Predefined.
      */
-    explicit HeartMessage(const String& customText)
-        : type(MessageType::Custom),
-          text(customText)
-    {}
+    [[nodiscard]] Feeling feeling() const { return payload_.feeling; }
 
+    /**
+     * @brief The text this message carries.
+     *
+     * Only meaningful when kind() is MessageKind::Custom.
+     */
+    [[nodiscard]] const char* text() const { return payload_.text; }
 
+private:
+    /**
+     * @brief Holds either a Feeling or text, never both at once.
+     *
+     * Both members are trivial types, so a plain union needs no manual
+     * lifetime handling here: whichever constructor runs writes exactly
+     * one member, and callers are expected to read it back through the
+     * matching accessor for kind().
+     */
+    union Payload {
+        Feeling feeling;
+        char text[TextCapacity];
+    };
+
+    MessageKind kind_;
+    Payload payload_;
 };

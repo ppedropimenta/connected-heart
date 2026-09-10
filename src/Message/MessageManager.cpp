@@ -1,71 +1,87 @@
 #include "MessageManager.h"
 
+#include <new>
+
+#include "TextMetrics.h"
+#include "Core/Config.h"
+
+MessageManager::Slot::~Slot() {
+    reset();
+}
+
+void MessageManager::Slot::set(const HeartMessage& message) {
+    reset();
+    new (storage_) HeartMessage(message);
+    present_ = true;
+}
+
+void MessageManager::Slot::reset() {
+    if (present_) {
+        reinterpret_cast<HeartMessage*>(storage_)->~HeartMessage();
+        present_ = false;
+    }
+}
+
+const HeartMessage* MessageManager::Slot::get() const {
+    if (!present_) {
+        return nullptr;
+    }
+
+    return reinterpret_cast<const HeartMessage*>(storage_);
+}
+
 bool MessageManager::receive(const HeartMessage& message) {
     if (!isValid(message)) {
         return false;
     }
 
-    if (message.type == MessageType::Custom) {
-        pending_ = message;
-    } else {
-        pending_ = HeartMessage(message.type);
-    }
-
-    hasPending_ = true;
+    pending_.set(message);
 
     return true;
 }
 
 bool MessageManager::revealPending() {
-    if (!hasPending_) {
+    if (!pending_.present()) {
         return false;
     }
 
-    current_ = pending_;
-    hasCurrent_ = true;
-
-    pending_ = HeartMessage();
-    hasPending_ = false;
+    current_.set(*pending_.get());
+    pending_.reset();
 
     return true;
 }
 
 bool MessageManager::hasPending() const {
-    return hasPending_;
+    return pending_.present();
 }
 
 bool MessageManager::hasCurrent() const {
-    return hasCurrent_;
+    return current_.present();
 }
 
 const HeartMessage* MessageManager::pending() const {
-    if (!hasPending_) {
-        return nullptr;
-    }
-
-    return &pending_;
+    return pending_.get();
 }
 
 const HeartMessage* MessageManager::current() const {
-    if (!hasCurrent_) {
-        return nullptr;
-    }
-
-    return &current_;
+    return current_.get();
 }
 
 void MessageManager::clear() {
-    pending_ = HeartMessage();
-    current_ = HeartMessage();
-
-    hasPending_ = false;
-    hasCurrent_ = false;
+    pending_.reset();
+    current_.reset();
 }
 
 bool MessageManager::isValid(const HeartMessage& message) {
-    if (message.type == MessageType::Custom && message.text.length() == 0) {
+    if (message.kind() != MessageKind::Custom) {
+        return true;
+    }
+
+    const char* text = message.text();
+
+    if (text[0] == '\0') {
         return false;
     }
 
-    return true;
+    return TextMetrics::displayedLength(text) <= Config::MaximumMessageLength;
 }
