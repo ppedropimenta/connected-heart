@@ -1,5 +1,7 @@
 #include <unity.h>
 
+#include <string>
+
 #include "App/Application.h"
 #include "Core/Config.h"
 #include "Message/Feeling.h"
@@ -171,6 +173,20 @@ void test_predefined_message_resolves_to_catalog_wording() {
     TEST_ASSERT_EQUAL_STRING("Bom dia, meu amor!", fixture.renderer.lastMessageText.c_str());
 }
 
+void test_message_over_limit_is_rejected() {
+    Fixture fixture;
+
+    connect(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+
+    const std::string overLong(Config::MaximumMessageLength + 1, 'a');
+
+    fixture.messageSource.enqueue(HeartMessage(overLong.c_str()));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+}
+
 void test_touch_without_pending_message_does_nothing() {
     Fixture fixture;
 
@@ -303,6 +319,7 @@ int main(int argc, char** argv) {
     RUN_TEST(test_message_while_displayed_interrupts_it);
     RUN_TEST(test_message_during_reveal_returns_to_notification_instead_of_displaying);
     RUN_TEST(test_predefined_message_resolves_to_catalog_wording);
+    RUN_TEST(test_message_over_limit_is_rejected);
     RUN_TEST(test_touch_without_pending_message_does_nothing);
     RUN_TEST(test_unprovisioned_boot_starts_in_setup);
     RUN_TEST(test_provisioned_boot_starts_waking);
