@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 #include "Core/Config.h"
+#include "Core/Log.h"
 #include "Core/Pins.h"
 
 void GpioTouchSensor::begin() {
@@ -27,6 +28,7 @@ void GpioTouchSensor::update() {
         stableState_ = raw;
 
         if (isPress) {
+            LOG_DEBUG("Touch press detected");
             pending_ = true;
         }
     }
