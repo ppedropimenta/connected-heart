@@ -31,6 +31,12 @@ public:
     virtual void showConnecting() = 0;
 
     /**
+     * @brief Displays the setup screen for a heart with no usable network
+     * or Pairing.
+     */
+    virtual void showSetup() = 0;
+
+    /**
      * @brief Displays the normal waiting screen.
      */
     virtual void showWaitingForMessage(

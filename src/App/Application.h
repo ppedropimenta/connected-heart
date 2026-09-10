@@ -33,13 +33,53 @@ public:
         Clock& clock
     );
 
-    void begin();
+    /**
+     * @brief Runs the device from DeviceState::Boot.
+     *
+     * @param provisioned Whether the heart already has a usable network and
+     * Pairing. Chooses whether Boot leads to Waking or Setup.
+     */
+    void begin(bool provisioned);
+
     void update();
+
+    /**
+     * @brief Reports that Setup has produced a usable network and Pairing.
+     *
+     * Called once the captive portal and pairing have both completed.
+     */
+    void notifyProvisioningFinished();
+
+    /**
+     * @brief Reports that the heart's connection is up.
+     *
+     * Also clears the consecutive-failure count kept for
+     * DeviceEvent::ConnectionAttemptsExhausted.
+     */
+    void notifyConnectionEstablished();
+
+    /**
+     * @brief Reports that a single connection attempt has failed.
+     *
+     * Once Config::MaxConsecutiveConnectionFailures consecutive failures
+     * have been reported, raises DeviceEvent::ConnectionAttemptsExhausted.
+     */
+    void notifyConnectionAttemptFailed();
 
 private:
     void processInputs();
     void processTimers();
-    void processEvent(DeviceEvent event);
+
+    /**
+     * @brief Feeds an event to StateMachine and drives the renderer/LED on
+     * a resulting state change.
+     *
+     * @param provisioned Forwarded to StateMachine::process(); meaningful
+     * only for InitializationFinished, ignored for every other event.
+     *
+     * @return true if the event was valid in the current state.
+     */
+    bool processEvent(DeviceEvent event, bool provisioned = true);
 
     void enterState(DeviceState state);
 
@@ -53,4 +93,5 @@ private:
     MessageManager messageManager_;
 
     unsigned long stateEnteredAt_ = 0;
+    unsigned int consecutiveConnectionFailures_ = 0;
 };

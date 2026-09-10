@@ -12,12 +12,18 @@ enum class DeviceState {
     Boot,
 
     /**
+     * The device has no usable network or Pairing and offers its own
+     * access point so it can be provisioned.
+     */
+    Setup,
+
+    /**
     * The device is performing its initial connection process.
     *
     * This state belongs to the product flow because the device is not yet
     * ready to wait for messages.
     */
-    Connecting,
+    Waking,
 
     /**
      * The device is ready and no message is waiting to be revealed.

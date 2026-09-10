@@ -31,6 +31,9 @@ public:
      * @brief Processes an event according to the current state.
      *
      * @param event Event to process.
+     * @param provisioned Whether the heart already has a usable network and
+     * Pairing. Only consulted when processing InitializationFinished from
+     * Boot, to decide between Waking and Setup; ignored otherwise.
      *
      * @return true if the event is valid in the current state.
      * @return false if the event is ignored.
@@ -39,7 +42,7 @@ public:
      * For example, receiving another message while already in Notification
      * replaces the pending message but keeps the device in Notification.
      */
-    bool process(DeviceEvent event);
+    bool process(DeviceEvent event, bool provisioned);
 
     /**
      * @brief Restores the state machine to its initial state.

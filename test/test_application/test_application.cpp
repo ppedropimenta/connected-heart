@@ -25,10 +25,31 @@ namespace {
         FakeClock clock;
         Application app{renderer, led, touch, messageSource, clock};
 
+        /**
+         * @brief Begins the application already provisioned, landing in
+         * Waking. Most tests care about behaviour past that point.
+         */
         Fixture() {
-            app.begin();
+            app.begin(true);
         }
     };
+
+    /**
+     * @brief Advances a provisioned Fixture from Waking to WaitingForMessage.
+     */
+    void connect(Fixture& fixture) {
+        fixture.app.notifyConnectionEstablished();
+    }
+
+    /**
+     * @brief Reports failed connection attempts until the heart gives up
+     * and returns to Setup.
+     */
+    void exhaustConnectionAttempts(Fixture& fixture) {
+        for (unsigned int i = 0; i < Config::MaxConsecutiveConnectionFailures; ++i) {
+            fixture.app.notifyConnectionAttemptFailed();
+        }
+    }
 
     void assertScreen(
         const FakeDisplayRenderer::Screen expected,
@@ -159,6 +180,121 @@ void test_touch_without_pending_message_does_nothing() {
     assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
 }
 
+void test_unprovisioned_boot_starts_in_setup() {
+    FakeDisplayRenderer renderer;
+    FakeLed led;
+    FakeTouchSensor touch;
+    FakeMessageSource messageSource;
+    FakeClock clock;
+    Application app{renderer, led, touch, messageSource, clock};
+
+    app.begin(false);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
+}
+
+void test_provisioned_boot_starts_waking() {
+    FakeDisplayRenderer renderer;
+    FakeLed led;
+    FakeTouchSensor touch;
+    FakeMessageSource messageSource;
+    FakeClock clock;
+    Application app{renderer, led, touch, messageSource, clock};
+
+    app.begin(true);
+
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, renderer.lastScreen);
+}
+
+void test_provisioning_finished_moves_setup_to_waking() {
+    FakeDisplayRenderer renderer;
+    FakeLed led;
+    FakeTouchSensor touch;
+    FakeMessageSource messageSource;
+    FakeClock clock;
+    Application app{renderer, led, touch, messageSource, clock};
+
+    app.begin(false);
+    assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
+
+    app.notifyProvisioningFinished();
+
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, renderer.lastScreen);
+}
+
+void test_connection_attempts_exhausted_from_waking_returns_to_setup() {
+    Fixture fixture;
+
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
+
+    exhaustConnectionAttempts(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+}
+
+void test_connection_attempts_exhausted_from_waiting_for_message_returns_to_setup() {
+    Fixture fixture;
+
+    connect(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+
+    exhaustConnectionAttempts(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+}
+
+void test_connection_attempts_exhausted_from_notification_returns_to_setup() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+
+    exhaustConnectionAttempts(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+}
+
+void test_connection_attempts_exhausted_from_displaying_message_returns_to_setup() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    reveal(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+
+    exhaustConnectionAttempts(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+}
+
+void test_connection_attempts_are_not_exhausted_before_the_configured_count() {
+    Fixture fixture;
+
+    for (unsigned int i = 0; i < Config::MaxConsecutiveConnectionFailures - 1; ++i) {
+        fixture.app.notifyConnectionAttemptFailed();
+    }
+
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
+}
+
+void test_connection_established_resets_the_failure_count() {
+    Fixture fixture;
+
+    for (unsigned int i = 0; i < Config::MaxConsecutiveConnectionFailures - 1; ++i) {
+        fixture.app.notifyConnectionAttemptFailed();
+    }
+
+    connect(fixture);
+
+    for (unsigned int i = 0; i < Config::MaxConsecutiveConnectionFailures - 1; ++i) {
+        fixture.app.notifyConnectionAttemptFailed();
+    }
+
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+}
+
 int main(int argc, char** argv) {
     UNITY_BEGIN();
 
@@ -168,6 +304,15 @@ int main(int argc, char** argv) {
     RUN_TEST(test_message_during_reveal_returns_to_notification_instead_of_displaying);
     RUN_TEST(test_predefined_message_resolves_to_catalog_wording);
     RUN_TEST(test_touch_without_pending_message_does_nothing);
+    RUN_TEST(test_unprovisioned_boot_starts_in_setup);
+    RUN_TEST(test_provisioned_boot_starts_waking);
+    RUN_TEST(test_provisioning_finished_moves_setup_to_waking);
+    RUN_TEST(test_connection_attempts_exhausted_from_waking_returns_to_setup);
+    RUN_TEST(test_connection_attempts_exhausted_from_waiting_for_message_returns_to_setup);
+    RUN_TEST(test_connection_attempts_exhausted_from_notification_returns_to_setup);
+    RUN_TEST(test_connection_attempts_exhausted_from_displaying_message_returns_to_setup);
+    RUN_TEST(test_connection_attempts_are_not_exhausted_before_the_configured_count);
+    RUN_TEST(test_connection_established_resets_the_failure_count);
 
     return UNITY_END();
 }

@@ -30,5 +30,19 @@ enum class DeviceEvent {
     /**
      * The visual reveal sequence finished.
      */
-    RevealFinished
+    RevealFinished,
+
+    /**
+     * Setup completed and the heart has a network and a Sender to use.
+     */
+    ProvisioningFinished,
+
+    /**
+     * A configured number of consecutive connection attempts have failed.
+     *
+     * Driven by a count of consecutive failures, not by elapsed time alone,
+     * so a router that is slow to answer is not treated the same as one
+     * that is gone.
+     */
+    ConnectionAttemptsExhausted
 };

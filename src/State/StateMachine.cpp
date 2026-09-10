@@ -4,19 +4,43 @@ DeviceState StateMachine::state() const {
     return state_;
 }
 
-bool StateMachine::process(const DeviceEvent event) {
+bool StateMachine::process(const DeviceEvent event, const bool provisioned) {
+    /*
+     * ConnectionAttemptsExhausted returns the heart to Setup from every
+     * state except Boot, Setup itself, and RevealingMessage: a reveal is a
+     * held beat and is never interrupted, not even by a lost connection.
+     * Handled once here rather than repeated in every other case below.
+     */
+    if (event == DeviceEvent::ConnectionAttemptsExhausted
+        && state_ != DeviceState::Boot
+        && state_ != DeviceState::Setup
+        && state_ != DeviceState::RevealingMessage) {
+        state_ = DeviceState::Setup;
+        return true;
+    }
+
     switch (state_) {
         case DeviceState::Boot:
         {
             if (event == DeviceEvent::InitializationFinished) {
-                state_ = DeviceState::Connecting;
+                state_ = provisioned ? DeviceState::Waking : DeviceState::Setup;
                 return true;
             }
 
             return false;
         }
 
-        case DeviceState::Connecting:
+        case DeviceState::Setup:
+        {
+            if (event == DeviceEvent::ProvisioningFinished) {
+                state_ = DeviceState::Waking;
+                return true;
+            }
+
+            return false;
+        }
+
+        case DeviceState::Waking:
         {
             if (event == DeviceEvent::ConnectionEstablished) {
                 state_ = DeviceState::WaitingForMessage;

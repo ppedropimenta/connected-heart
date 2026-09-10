@@ -16,6 +16,7 @@ public:
 
     void showStartup() override;
     void showConnecting() override;
+    void showSetup() override;
 
     void showWaitingForMessage(
         ConnectionState connectionState

@@ -21,7 +21,7 @@ enum class ConnectionState {
     /**
      * The connection is currently unavailable.
      *
-     * Reconnection may happen automatically or be requested through touch.
+     * Reconnection happens automatically.
      */
     Error
 };

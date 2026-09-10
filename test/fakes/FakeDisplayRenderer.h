@@ -10,6 +10,7 @@ public:
         None,
         Startup,
         Connecting,
+        Setup,
         WaitingForMessage,
         Notification,
         RevealHeart,
@@ -22,6 +23,10 @@ public:
 
     void showConnecting() override {
         lastScreen = Screen::Connecting;
+    }
+
+    void showSetup() override {
+        lastScreen = Screen::Setup;
     }
 
     void showWaitingForMessage(const ConnectionState connectionState) override {

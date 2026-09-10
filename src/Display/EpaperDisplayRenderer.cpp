@@ -54,6 +54,30 @@ void EpaperDisplayRenderer::showConnecting()
     });
 }
 
+void EpaperDisplayRenderer::showSetup()
+{
+    LOG_DEBUG("Rendering setup screen");
+
+    display_.render([this]()
+    {
+        display_.setBoldFont();
+
+        display_.drawCenteredText(
+            "Aguardando configuracao",
+            display_.width() / 2,
+            45
+        );
+
+        display_.setRegularFont();
+
+        display_.drawCenteredText(
+            "Conecte-se a rede do coracao",
+            display_.width() / 2,
+            78
+        );
+    });
+}
+
 void EpaperDisplayRenderer::showWaitingForMessage(
     const ConnectionState connectionState
 )

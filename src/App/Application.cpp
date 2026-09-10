@@ -19,12 +19,12 @@ Application::Application(
 {
 }
 
-void Application::begin() {
+void Application::begin(const bool provisioned) {
     LOG_INFO("Initializing application modules");
 
     renderer_.showStartup();
 
-    processEvent(DeviceEvent::InitializationFinished);
+    processEvent(DeviceEvent::InitializationFinished, provisioned);
 }
 
 void Application::update() {
@@ -60,11 +60,33 @@ void Application::processTimers() {
     }
 }
 
-void Application::processEvent(const DeviceEvent event) {
+void Application::notifyProvisioningFinished() {
+    processEvent(DeviceEvent::ProvisioningFinished);
+}
+
+void Application::notifyConnectionEstablished() {
+    consecutiveConnectionFailures_ = 0;
+
+    processEvent(DeviceEvent::ConnectionEstablished);
+}
+
+void Application::notifyConnectionAttemptFailed() {
+    ++consecutiveConnectionFailures_;
+
+    if (consecutiveConnectionFailures_ < Config::MaxConsecutiveConnectionFailures) {
+        return;
+    }
+
+    if (processEvent(DeviceEvent::ConnectionAttemptsExhausted)) {
+        consecutiveConnectionFailures_ = 0;
+    }
+}
+
+bool Application::processEvent(const DeviceEvent event, const bool provisioned) {
     const DeviceState previousState = stateMachine_.state();
 
-    if (!stateMachine_.process(event)) {
-        return;
+    if (!stateMachine_.process(event, provisioned)) {
+        return false;
     }
 
     const DeviceState newState = stateMachine_.state();
@@ -80,6 +102,8 @@ void Application::processEvent(const DeviceEvent event) {
     if (newState != previousState) {
         enterState(newState);
     }
+
+    return true;
 }
 
 void Application::enterState(const DeviceState state) {
@@ -89,7 +113,11 @@ void Application::enterState(const DeviceState state) {
         case DeviceState::Boot:
             break;
 
-        case DeviceState::Connecting:
+        case DeviceState::Setup:
+            renderer_.showSetup();
+            break;
+
+        case DeviceState::Waking:
             renderer_.showConnecting();
             led_.show(LedPattern::Connecting);
             break;
