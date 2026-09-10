@@ -1,6 +1,9 @@
 /**
 * @file Led.h
- * @brief Controls the onboard status LED.
+ * @brief Interface for the Connected Heart notification LED.
+ *
+ * Led knows nothing about device states or application flow; it only
+ * renders whichever LedPattern it is asked to show.
  */
 
 #pragma once
@@ -10,12 +13,8 @@
 
 class Led : public Module {
 public:
-    void begin() override;
-    void update() override;
-
-    void setPattern(LedPattern pattern);
-
-private:
-    LedPattern pattern_ = LedPattern::Off;
-    unsigned long patternStartedAt_ = 0;
+    /**
+     * @brief Shows the given pattern, replacing whatever was showing.
+     */
+    virtual void show(LedPattern pattern) = 0;
 };

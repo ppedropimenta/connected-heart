@@ -1,19 +1,18 @@
+/**
+* @file TouchSensor.h
+ * @brief Interface for the Connected Heart touch surface.
+ */
+
 #pragma once
 
 #include "Core/Module.h"
 
-class TouchSensor : public Module
-{
+class TouchSensor : public Module {
 public:
-    void begin() override;
-    void update() override;
-
-    bool wasPressed();
-
-private:
-    bool stableState_ = false;
-    bool rawState_ = false;
-    bool pressEvent_ = false;
-
-    unsigned long lastChangeAt_ = 0;
+    /**
+     * @brief Returns whether a debounced press occurred since the last call.
+     *
+     * A press is reported at most once.
+     */
+    virtual bool wasPressed() = 0;
 };

@@ -2,23 +2,37 @@
 * @file Application.h
  * @brief Defines the main application controller.
  *
- * The Application class owns the system modules and coordinates
- * their initialization and periodic execution.
+ * Application owns the product's flow: it translates inputs from its
+ * injected collaborators into DeviceEvents, feeds them to StateMachine,
+ * and drives the renderer and LED whenever the state changes.
+ *
+ * All hardware access happens through injected interfaces, so the whole
+ * flow can be exercised on the host with fakes standing in for the
+ * renderer, the LED, the touch input, the message source, and the clock.
  */
 
 #pragma once
 
-#include "Display/EpaperDisplay.h"
+#include "Communication/MessageSource.h"
+#include "Core/Clock.h"
+#include "Display/DisplayRenderer.h"
 #include "Led/Led.h"
-#include "../Touch/TouchSensor.h"
-#include "../Message/MessageManager.h"
-#include "../State/DeviceState.h"
-#include "../State/StateMachine.h"
-#include "../State/DeviceEvent.h"
-#include "../Communication/SerialMessageSource.h"
+#include "Message/MessageManager.h"
+#include "State/DeviceEvent.h"
+#include "State/DeviceState.h"
+#include "State/StateMachine.h"
+#include "Touch/TouchSensor.h"
 
 class Application {
 public:
+    Application(
+        DisplayRenderer& renderer,
+        Led& led,
+        TouchSensor& touch,
+        MessageSource& messageSource,
+        Clock& clock
+    );
+
     void begin();
     void update();
 
@@ -29,12 +43,14 @@ private:
 
     void enterState(DeviceState state);
 
+    DisplayRenderer& renderer_;
+    Led& led_;
+    TouchSensor& touch_;
+    MessageSource& messageSource_;
+    Clock& clock_;
+
     StateMachine stateMachine_;
     MessageManager messageManager_;
-
-    EpaperDisplay display_;
-    Led led_;
-    TouchSensor touch_;
 
     unsigned long stateEnteredAt_ = 0;
 };

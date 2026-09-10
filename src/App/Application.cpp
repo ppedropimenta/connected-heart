@@ -1,8 +1,123 @@
 #include "Application.h"
 
+#include "Core/Config.h"
 #include "Core/Log.h"
+#include "Message/MessageCatalog.h"
+
+Application::Application(
+    DisplayRenderer& renderer,
+    Led& led,
+    TouchSensor& touch,
+    MessageSource& messageSource,
+    Clock& clock
+)
+    : renderer_(renderer)
+    , led_(led)
+    , touch_(touch)
+    , messageSource_(messageSource)
+    , clock_(clock)
+{
+}
 
 void Application::begin() {
     LOG_INFO("Initializing application modules");
 
+    renderer_.showStartup();
+
+    processEvent(DeviceEvent::InitializationFinished);
+}
+
+void Application::update() {
+    processInputs();
+    processTimers();
+}
+
+void Application::processInputs() {
+    messageSource_.update();
+
+    if (messageSource_.hasMessage()) {
+        const HeartMessage message = messageSource_.takeMessage();
+
+        if (messageManager_.receive(message)) {
+            processEvent(DeviceEvent::MessageReceived);
+        }
+    }
+
+    touch_.update();
+
+    if (touch_.wasPressed()) {
+        processEvent(DeviceEvent::TouchPressed);
+    }
+}
+
+void Application::processTimers() {
+    if (stateMachine_.state() != DeviceState::RevealingMessage) {
+        return;
+    }
+
+    if (clock_.millis() - stateEnteredAt_ >= Config::RevealDurationMs) {
+        processEvent(DeviceEvent::RevealFinished);
+    }
+}
+
+void Application::processEvent(const DeviceEvent event) {
+    const DeviceState previousState = stateMachine_.state();
+
+    if (!stateMachine_.process(event)) {
+        return;
+    }
+
+    const DeviceState newState = stateMachine_.state();
+
+    if (event == DeviceEvent::RevealFinished && newState == DeviceState::DisplayingMessage) {
+        /*
+         * The reveal completed without being interrupted by another
+         * message, so the pending message becomes the current one.
+         */
+        messageManager_.revealPending();
+    }
+
+    if (newState != previousState) {
+        enterState(newState);
+    }
+}
+
+void Application::enterState(const DeviceState state) {
+    stateEnteredAt_ = clock_.millis();
+
+    switch (state) {
+        case DeviceState::Boot:
+            break;
+
+        case DeviceState::Connecting:
+            renderer_.showConnecting();
+            led_.show(LedPattern::Connecting);
+            break;
+
+        case DeviceState::WaitingForMessage:
+            renderer_.showWaitingForMessage(ConnectionState::Connected);
+            led_.show(LedPattern::Off);
+            break;
+
+        case DeviceState::Notification:
+            renderer_.showNotification(ConnectionState::Connected);
+            led_.show(LedPattern::NotificationPulse);
+            break;
+
+        case DeviceState::RevealingMessage:
+            renderer_.showRevealHeart(ConnectionState::Connected);
+            led_.show(LedPattern::RevealHeartbeat);
+            break;
+
+        case DeviceState::DisplayingMessage: {
+            const HeartMessage* message = messageManager_.current();
+
+            renderer_.showMessage(
+                message != nullptr ? MessageCatalog::resolve(*message) : "",
+                ConnectionState::Connected
+            );
+            led_.show(LedPattern::Off);
+            break;
+        }
+    }
 }

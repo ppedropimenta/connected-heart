@@ -20,3 +20,11 @@ const char* MessageCatalog::textFor(const Feeling feeling) {
 
     return "";
 }
+
+const char* MessageCatalog::resolve(const HeartMessage& message) {
+    if (message.kind() == MessageKind::Predefined) {
+        return textFor(message.feeling());
+    }
+
+    return message.text();
+}

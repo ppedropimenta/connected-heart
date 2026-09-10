@@ -21,7 +21,18 @@
 
 #pragma once
 
+/**
+ * On the ESP32 build this logs over Serial with a millis() timestamp. On
+ * the host build (no ARDUINO define) it falls back to stdio so the message
+ * layer and Application stay testable without Arduino.
+ */
+#ifdef ARDUINO
 #include <Arduino.h>
+#define LOG_PRINTF(fmt, ...) Serial.printf(fmt, millis(), ##__VA_ARGS__)
+#else
+#include <cstdio>
+#define LOG_PRINTF(fmt, ...) std::printf(fmt, 0UL, ##__VA_ARGS__)
+#endif
 
 #ifndef LOG_LEVEL
 #define LOG_LEVEL 3
@@ -33,29 +44,25 @@
 #define LOG_DEBUG_LEVEL 4
 
 #if LOG_LEVEL >= LOG_ERROR_LEVEL
-#define LOG_ERROR(fmt, ...) \
-Serial.printf("[%lu] ERROR: " fmt "\n", millis(), ##__VA_ARGS__)
+#define LOG_ERROR(fmt, ...) LOG_PRINTF("[%lu] ERROR: " fmt "\n", ##__VA_ARGS__)
 #else
 #define LOG_ERROR(...)
 #endif
 
 #if LOG_LEVEL >= LOG_WARN_LEVEL
-#define LOG_WARN(fmt, ...) \
-Serial.printf("[%lu] WARN: " fmt "\n", millis(), ##__VA_ARGS__)
+#define LOG_WARN(fmt, ...) LOG_PRINTF("[%lu] WARN: " fmt "\n", ##__VA_ARGS__)
 #else
 #define LOG_WARN(...)
 #endif
 
 #if LOG_LEVEL >= LOG_INFO_LEVEL
-#define LOG_INFO(fmt, ...) \
-Serial.printf("[%lu] INFO: " fmt "\n", millis(), ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...) LOG_PRINTF("[%lu] INFO: " fmt "\n", ##__VA_ARGS__)
 #else
 #define LOG_INFO(...)
 #endif
 
 #if LOG_LEVEL >= LOG_DEBUG_LEVEL
-#define LOG_DEBUG(fmt, ...) \
-Serial.printf("[%lu] DEBUG: " fmt "\n", millis(), ##__VA_ARGS__)
+#define LOG_DEBUG(fmt, ...) LOG_PRINTF("[%lu] DEBUG: " fmt "\n", ##__VA_ARGS__)
 #else
 #define LOG_DEBUG(...)
 #endif

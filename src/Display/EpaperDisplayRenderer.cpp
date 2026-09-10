@@ -1,15 +1,15 @@
-#include "DisplayRenderer.h"
+#include "EpaperDisplayRenderer.h"
 
 #include <Core/Log.h>
 
-DisplayRenderer::DisplayRenderer(
+EpaperDisplayRenderer::EpaperDisplayRenderer(
     EpaperDisplay& display
 )
     : display_(display)
 {
 }
 
-void DisplayRenderer::showStartup()
+void EpaperDisplayRenderer::showStartup()
 {
     LOG_DEBUG("Rendering startup screen");
 
@@ -33,7 +33,7 @@ void DisplayRenderer::showStartup()
     });
 }
 
-void DisplayRenderer::showConnecting()
+void EpaperDisplayRenderer::showConnecting()
 {
     LOG_DEBUG("Rendering connecting screen");
 
@@ -54,7 +54,7 @@ void DisplayRenderer::showConnecting()
     });
 }
 
-void DisplayRenderer::showWaitingForMessage(
+void EpaperDisplayRenderer::showWaitingForMessage(
     const ConnectionState connectionState
 )
 {
@@ -110,7 +110,7 @@ void DisplayRenderer::showWaitingForMessage(
     });
 }
 
-void DisplayRenderer::showNotification(
+void EpaperDisplayRenderer::showNotification(
     const ConnectionState connectionState
 )
 {
@@ -138,7 +138,7 @@ void DisplayRenderer::showNotification(
     });
 }
 
-void DisplayRenderer::showRevealHeart(
+void EpaperDisplayRenderer::showRevealHeart(
     const ConnectionState connectionState
 )
 {
@@ -155,14 +155,16 @@ void DisplayRenderer::showRevealHeart(
     });
 }
 
-void DisplayRenderer::showMessage(
-    const String& text,
+void EpaperDisplayRenderer::showMessage(
+    const char* text,
     const ConnectionState connectionState
 )
 {
     LOG_DEBUG("Rendering message screen");
 
-    display_.render([this, &text, connectionState]()
+    const String message(text);
+
+    display_.render([this, &message, connectionState]()
     {
         display_.setRegularFont();
 
@@ -173,7 +175,7 @@ void DisplayRenderer::showMessage(
         constexpr int16_t horizontalMargin = 18;
 
         display_.drawCenteredWrappedText(
-            text,
+            message,
             display_.width() / 2,
             display_.height() / 2,
             display_.width() - (horizontalMargin * 2),
@@ -185,7 +187,7 @@ void DisplayRenderer::showMessage(
     });
 }
 
-void DisplayRenderer::drawConnectionIndicatorIfNeeded(
+void EpaperDisplayRenderer::drawConnectionIndicatorIfNeeded(
     const ConnectionState connectionState
 )
 {

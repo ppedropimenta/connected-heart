@@ -1,0 +1,173 @@
+#include <unity.h>
+
+#include "App/Application.h"
+#include "Core/Config.h"
+#include "Message/Feeling.h"
+
+#include "fakes/FakeClock.h"
+#include "fakes/FakeDisplayRenderer.h"
+#include "fakes/FakeLed.h"
+#include "fakes/FakeMessageSource.h"
+#include "fakes/FakeTouchSensor.h"
+
+void setUp() {}
+void tearDown() {}
+
+namespace {
+    /**
+     * @brief Wires a fresh Application with fakes, already begin()-ed.
+     */
+    struct Fixture {
+        FakeDisplayRenderer renderer;
+        FakeLed led;
+        FakeTouchSensor touch;
+        FakeMessageSource messageSource;
+        FakeClock clock;
+        Application app{renderer, led, touch, messageSource, clock};
+
+        Fixture() {
+            app.begin();
+        }
+    };
+
+    void assertScreen(
+        const FakeDisplayRenderer::Screen expected,
+        const FakeDisplayRenderer::Screen actual
+    ) {
+        TEST_ASSERT_EQUAL(
+            static_cast<int>(expected),
+            static_cast<int>(actual)
+        );
+    }
+
+    void assertLedPattern(
+        const LedPattern expected,
+        const LedPattern actual
+    ) {
+        TEST_ASSERT_EQUAL(
+            static_cast<int>(expected),
+            static_cast<int>(actual)
+        );
+    }
+
+    void reveal(Fixture& fixture) {
+        fixture.touch.press();
+        fixture.app.update();
+
+        fixture.clock.advance(Config::RevealDurationMs);
+        fixture.app.update();
+    }
+}
+
+void test_message_arriving_shows_notification() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::NotificationPulse, fixture.led.lastPattern);
+}
+
+void test_message_while_pending_replaces_it() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    fixture.messageSource.enqueue(HeartMessage("Boa noite"));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::RevealHeartbeat, fixture.led.lastPattern);
+
+    fixture.clock.advance(Config::RevealDurationMs);
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::Off, fixture.led.lastPattern);
+    TEST_ASSERT_EQUAL_STRING("Boa noite", fixture.renderer.lastMessageText.c_str());
+}
+
+void test_message_while_displayed_interrupts_it() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Primeira mensagem", fixture.renderer.lastMessageText.c_str());
+
+    fixture.messageSource.enqueue(HeartMessage("Segunda mensagem"));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+}
+
+void test_message_during_reveal_returns_to_notification_instead_of_displaying() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+
+    fixture.messageSource.enqueue(HeartMessage("Segunda mensagem"));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+
+    fixture.clock.advance(Config::RevealDurationMs);
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Segunda mensagem", fixture.renderer.lastMessageText.c_str());
+}
+
+void test_predefined_message_resolves_to_catalog_wording() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::GoodMorning));
+    fixture.app.update();
+
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Bom dia, meu amor!", fixture.renderer.lastMessageText.c_str());
+}
+
+void test_touch_without_pending_message_does_nothing() {
+    Fixture fixture;
+
+    fixture.touch.press();
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
+}
+
+int main(int argc, char** argv) {
+    UNITY_BEGIN();
+
+    RUN_TEST(test_message_arriving_shows_notification);
+    RUN_TEST(test_message_while_pending_replaces_it);
+    RUN_TEST(test_message_while_displayed_interrupts_it);
+    RUN_TEST(test_message_during_reveal_returns_to_notification_instead_of_displaying);
+    RUN_TEST(test_predefined_message_resolves_to_catalog_wording);
+    RUN_TEST(test_touch_without_pending_message_does_nothing);
+
+    return UNITY_END();
+}
