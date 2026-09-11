@@ -11,7 +11,8 @@ Application::Application(
     TouchSensor& touch,
     MessageSource& messageSource,
     MessageStorage& storage,
-    Clock& clock
+    Clock& clock,
+    PairingSource& pairingSource
 )
     : renderer_(renderer)
     , led_(led)
@@ -19,6 +20,7 @@ Application::Application(
     , messageSource_(messageSource)
     , storage_(storage)
     , clock_(clock)
+    , pairingSource_(pairingSource)
 {
 }
 
@@ -148,7 +150,16 @@ void Application::renderState(const DeviceState state) {
             break;
 
         case DeviceState::Setup:
-            renderer_.showSetup(Config::ProvisioningApSsid);
+            /*
+             * The pairing code is only meaningful while unpaired: Setup
+             * can be re-entered long after pairing (ADR-0004's automatic
+             * recovery), and showing a code there would wrongly suggest
+             * re-pairing is needed.
+             */
+            renderer_.showSetup(
+                Config::ProvisioningApSsid,
+                pairingSource_.isPaired() ? "" : pairingSource_.pairingCode()
+            );
             break;
 
         case DeviceState::Waking:

@@ -18,3 +18,7 @@ const char* AcknowledgementCatalog::rejectedNotText() {
     return "O coração só recebe mensagens de texto. "
            "Essa chegou vazia ou em um formato que ele não entende.";
 }
+
+const char* AcknowledgementCatalog::paired() {
+    return "Pareado! Agora as mensagens que você enviar vão aparecer no coração.";
+}

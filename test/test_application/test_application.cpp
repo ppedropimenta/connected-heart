@@ -11,6 +11,7 @@
 #include "fakes/FakeLed.h"
 #include "fakes/FakeMessageSource.h"
 #include "fakes/FakeMessageStorage.h"
+#include "fakes/FakePairingSource.h"
 #include "fakes/FakeTouchSensor.h"
 
 void setUp() {}
@@ -27,7 +28,8 @@ namespace {
         FakeMessageSource messageSource;
         FakeMessageStorage storage;
         FakeClock clock;
-        Application app{renderer, led, touch, messageSource, storage, clock};
+        FakePairingSource pairingSource;
+        Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
 
         /**
          * @brief Begins the application already provisioned, landing in
@@ -285,10 +287,11 @@ void test_restored_message_is_displayed_instead_of_the_waiting_screen() {
     FakeMessageSource messageSource;
     FakeMessageStorage storage;
     FakeClock clock;
+    FakePairingSource pairingSource;
 
     storage.seedCurrentMessage(HeartMessage("Ainda aqui"));
 
-    Application app{renderer, led, touch, messageSource, storage, clock};
+    Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
 
     app.begin(true);
     app.notifyConnectionEstablished();
@@ -390,13 +393,39 @@ void test_unprovisioned_boot_starts_in_setup() {
     FakeMessageSource messageSource;
     FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, storage, clock};
+    FakePairingSource pairingSource;
+    pairingSource.setCode("482913");
+    Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
 
     app.begin(false);
 
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
     assertLedPattern(LedPattern::Setup, led.lastPattern);
     TEST_ASSERT_EQUAL_STRING(Config::ProvisioningApSsid, renderer.lastApSsid.c_str());
+    TEST_ASSERT_EQUAL_STRING("482913", renderer.lastPairingCode.c_str());
+}
+
+void test_setup_screen_hides_pairing_code_once_already_paired() {
+    FakeDisplayRenderer renderer;
+    FakeLed led;
+    FakeTouchSensor touch;
+    FakeMessageSource messageSource;
+    FakeMessageStorage storage;
+    FakeClock clock;
+    FakePairingSource pairingSource;
+    pairingSource.setCode("482913");
+    pairingSource.seedPairedChatId("some-chat-id");
+    Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
+
+    /*
+     * Models ADR-0004's automatic recovery: Setup is re-entered after a
+     * connection failure, but pairing already happened long ago. Showing
+     * the pairing code here would wrongly suggest re-pairing is needed.
+     */
+    app.begin(false);
+
+    assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("", renderer.lastPairingCode.c_str());
 }
 
 void test_provisioned_boot_starts_waking() {
@@ -406,7 +435,8 @@ void test_provisioned_boot_starts_waking() {
     FakeMessageSource messageSource;
     FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, storage, clock};
+    FakePairingSource pairingSource;
+    Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
 
     app.begin(true);
 
@@ -420,7 +450,8 @@ void test_provisioning_finished_moves_setup_to_waking() {
     FakeMessageSource messageSource;
     FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, storage, clock};
+    FakePairingSource pairingSource;
+    Application app{renderer, led, touch, messageSource, storage, clock, pairingSource};
 
     app.begin(false);
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
@@ -615,6 +646,7 @@ int main(int argc, char** argv) {
     RUN_TEST(test_rejected_message_reports_outcome_as_not_accepted);
     RUN_TEST(test_touch_without_pending_message_does_nothing);
     RUN_TEST(test_unprovisioned_boot_starts_in_setup);
+    RUN_TEST(test_setup_screen_hides_pairing_code_once_already_paired);
     RUN_TEST(test_provisioned_boot_starts_waking);
     RUN_TEST(test_provisioning_finished_moves_setup_to_waking);
     RUN_TEST(test_connection_attempts_exhausted_from_waking_returns_to_setup);

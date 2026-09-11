@@ -9,14 +9,18 @@
  * SerialLineParser recognizes for SerialMessageSource's bench harness —
  * becomes a Predefined Message; any other text becomes a Custom Message.
  *
- * The paired sender's chat identifier comes from a PairingSource, whose
- * only implementation for now (CompiledPairingSource) reads it in
- * compiled alongside the WiFi credentials; the pairing-by-code flow that
- * learns it at runtime is ticket 12, behind the same seam.
+ * The paired sender's chat identifier comes from a PairingSource. While
+ * unpaired (PairingSource::isPaired() false), every update is instead
+ * checked against PairingSource::pairingCode() through PairingCodeMatcher
+ * per ticket 12: a match claims the chat via PairingSource::bind() and is
+ * acknowledged, and anything else — a wrong code, an empty message,
+ * unsupported content — is silently discarded, so a stranger who finds
+ * the bot before pairing learns nothing from it. CompiledPairingSource,
+ * for bench work, is always already paired and never takes this path.
  *
- * Per ADR-0002 and ticket 10, the bot also replies to the sender: an
- * update with no usable text (empty, or unsupported content such as a
- * photo, sticker, or voice note) is rejected immediately in
+ * Per ADR-0002 and ticket 10, the bot also replies to the sender once
+ * paired: an update with no usable text (empty, or unsupported content
+ * such as a photo, sticker, or voice note) is rejected immediately in
  * handleUpdate(); an update that resolves to a HeartMessage is
  * acknowledged or rejected as too long from reportOutcome(), once
  * Application has told this source what MessageManager decided. An
@@ -71,6 +75,7 @@ private:
 
     void poll();
     void handleUpdate(const telegramMessage& message);
+    void handlePairingAttempt(const telegramMessage& message);
     void reply(const String& chatId, const char* text);
 
     PairingSource& pairingSource_;

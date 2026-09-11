@@ -1,8 +1,9 @@
 /**
 * @file ProvisioningPortal.h
  * @brief Captive portal that lets Setup be configured from a phone with no
- * app: an access point, a configuration page listing visible networks, and
- * a password field.
+ * app: an access point, a configuration page listing visible networks, a
+ * password field, and the pairing code (ticket 12) so the recipient can
+ * relay it to her Sender while she is still setting up.
  */
 
 #pragma once
@@ -12,6 +13,7 @@
 #include <DNSServer.h>
 #include <WebServer.h>
 
+#include "Communication/PairingSource.h"
 #include "NvsCredentialSource.h"
 
 /**
@@ -38,7 +40,7 @@
  */
 class ProvisioningPortal {
 public:
-    explicit ProvisioningPortal(NvsCredentialSource& credentialSource);
+    ProvisioningPortal(NvsCredentialSource& credentialSource, PairingSource& pairingSource);
 
     /**
      * @brief Starts the access point, DNS, and web server. Does nothing if
@@ -63,8 +65,15 @@ public:
     bool active() const;
 
     /**
-     * @brief True once, on the update() where a submitted network was
-     * confirmed to connect and its credentials were persisted.
+     * @brief True once Setup is fully done: a submitted network has been
+     * confirmed to connect (its credentials persisted) and pairing (see
+     * PairingSource) has completed.
+     *
+     * These can complete on different update()s: WiFi confirms as soon as
+     * a candidate network is submitted, but pairing only completes once
+     * the Sender actually sends the code, which may take a while longer.
+     * The WiFi half is latched internally so it isn't lost while waiting
+     * on the second; once both are true, this returns true exactly once.
      */
     bool justProvisioned();
 
@@ -85,12 +94,19 @@ private:
     static constexpr std::uint16_t HttpPort = 80;
 
     NvsCredentialSource& credentialSource_;
+    PairingSource& pairingSource_;
 
     DNSServer dnsServer_;
     WebServer server_{HttpPort};
 
     bool active_ = false;
-    bool provisioned_ = false;
+
+    /**
+     * @brief Latches a confirmed WiFi connection for the current Setup
+     * visit, so it survives however many update()s pairing still takes
+     * to complete. See justProvisioned().
+     */
+    bool wifiConfirmed_ = false;
 
     String pendingSsid_;
     String pendingPassword_;
@@ -106,6 +122,9 @@ private:
 
     [[nodiscard]]
     String buildConfigurationPage(const char* errorMessage = nullptr) const;
+
+    [[nodiscard]]
+    String buildSuccessPage() const;
 
     [[nodiscard]]
     String scanNetworksHtml() const;

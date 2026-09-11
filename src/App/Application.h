@@ -8,12 +8,14 @@
  *
  * All hardware access happens through injected interfaces, so the whole
  * flow can be exercised on the host with fakes standing in for the
- * renderer, the LED, the touch input, the message source, and the clock.
+ * renderer, the LED, the touch input, the message source, the clock, and
+ * the pairing source.
  */
 
 #pragma once
 
 #include "Communication/MessageSource.h"
+#include "Communication/PairingSource.h"
 #include "Core/Clock.h"
 #include "Display/DisplayRenderer.h"
 #include "Led/Led.h"
@@ -32,7 +34,8 @@ public:
         TouchSensor& touch,
         MessageSource& messageSource,
         MessageStorage& storage,
-        Clock& clock
+        Clock& clock,
+        PairingSource& pairingSource
     );
 
     /**
@@ -134,6 +137,7 @@ private:
     MessageSource& messageSource_;
     MessageStorage& storage_;
     Clock& clock_;
+    PairingSource& pairingSource_;
 
     StateMachine stateMachine_;
     MessageManager messageManager_;

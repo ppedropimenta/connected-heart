@@ -4,6 +4,7 @@
 
 #include "Communication/AcknowledgementCatalog.h"
 #include "Communication/MessageTextResolver.h"
+#include "Communication/PairingCodeMatcher.h"
 #include "Core/Config.h"
 #include "Core/Log.h"
 
@@ -66,6 +67,11 @@ void TelegramMessageSource::handleUpdate(const telegramMessage& message) {
         return;
     }
 
+    if (!pairingSource_.isPaired()) {
+        handlePairingAttempt(message);
+        return;
+    }
+
     if (message.chat_id != pairingSource_.pairedChatId()) {
         LOG_DEBUG("Telegram update from unpaired chat discarded");
         return;
@@ -82,6 +88,24 @@ void TelegramMessageSource::handleUpdate(const telegramMessage& message) {
     pendingChatId_ = message.chat_id;
 
     LOG_INFO("Telegram message received");
+}
+
+void TelegramMessageSource::handlePairingAttempt(const telegramMessage& message) {
+    if (!PairingCodeMatcher::matches(pairingSource_.pairingCode(), message.text.c_str())) {
+        /*
+         * Silent per ticket 12: a wrong code binds nothing and gets no
+         * reply, so a stranger who finds the bot before pairing learns
+         * nothing from it.
+         */
+        LOG_DEBUG("Telegram pairing attempt with wrong code discarded");
+        return;
+    }
+
+    pairingSource_.bind(message.chat_id.c_str());
+
+    LOG_INFO("Telegram chat paired");
+
+    reply(message.chat_id, AcknowledgementCatalog::paired());
 }
 
 void TelegramMessageSource::reportOutcome(const bool accepted, const bool wasPendingDisplaced) {

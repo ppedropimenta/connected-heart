@@ -12,6 +12,7 @@ void test_wordings_are_in_portuguese_and_non_empty() {
     TEST_ASSERT_TRUE(std::strlen(AcknowledgementCatalog::deliveredReplacingUnrevealed()) > 0);
     TEST_ASSERT_TRUE(std::strlen(AcknowledgementCatalog::rejectedTooLong()) > 0);
     TEST_ASSERT_TRUE(std::strlen(AcknowledgementCatalog::rejectedNotText()) > 0);
+    TEST_ASSERT_TRUE(std::strlen(AcknowledgementCatalog::paired()) > 0);
 }
 
 void test_every_wording_is_distinct() {
@@ -20,10 +21,11 @@ void test_every_wording_is_distinct() {
         AcknowledgementCatalog::deliveredReplacingUnrevealed(),
         AcknowledgementCatalog::rejectedTooLong(),
         AcknowledgementCatalog::rejectedNotText(),
+        AcknowledgementCatalog::paired(),
     };
 
-    for (size_t i = 0; i < 4; ++i) {
-        for (size_t j = i + 1; j < 4; ++j) {
+    for (size_t i = 0; i < 5; ++i) {
+        for (size_t j = i + 1; j < 5; ++j) {
             TEST_ASSERT_NOT_EQUAL(0, std::strcmp(wordings[i], wordings[j]));
         }
     }

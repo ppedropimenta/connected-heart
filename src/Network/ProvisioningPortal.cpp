@@ -27,14 +27,6 @@ namespace {
         "<p>Aguarde um instante.</p>"
         "</body></html>";
 
-    constexpr const char* SuccessPage =
-        "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
-        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        "<title>Coracao Conectado</title></head>"
-        "<body style=\"font-family:sans-serif;max-width:420px;margin:32px auto;padding:0 16px;\">"
-        "<h1>Conectado!</h1>"
-        "<p>O coracao esta se conectando a sua rede. Pode fechar esta pagina.</p>"
-        "</body></html>";
 }
 
 /*
@@ -45,8 +37,9 @@ namespace {
 constexpr std::uint16_t ProvisioningPortal::DnsPort;
 constexpr std::uint16_t ProvisioningPortal::HttpPort;
 
-ProvisioningPortal::ProvisioningPortal(NvsCredentialSource& credentialSource)
+ProvisioningPortal::ProvisioningPortal(NvsCredentialSource& credentialSource, PairingSource& pairingSource)
     : credentialSource_(credentialSource)
+    , pairingSource_(pairingSource)
 {
 }
 
@@ -75,7 +68,7 @@ void ProvisioningPortal::begin() {
     server_.begin();
 
     active_ = true;
-    provisioned_ = false;
+    wifiConfirmed_ = false;
     connectAttempt_ = ConnectAttempt::None;
 }
 
@@ -109,9 +102,12 @@ bool ProvisioningPortal::active() const {
 }
 
 bool ProvisioningPortal::justProvisioned() {
-    const bool value = provisioned_;
-    provisioned_ = false;
-    return value;
+    if (!wifiConfirmed_ || !pairingSource_.isPaired()) {
+        return false;
+    }
+
+    wifiConfirmed_ = false;
+    return true;
 }
 
 void ProvisioningPortal::pollConnectAttempt() {
@@ -129,8 +125,18 @@ void ProvisioningPortal::pollConnectAttempt() {
          */
         credentialSource_.save({pendingSsid_.c_str(), pendingPassword_.c_str()});
 
+        /*
+         * Per ticket 12, Setup no longer ends the moment WiFi connects: it
+         * also waits on pairing, which can take a while if the Sender is
+         * slow to send the code. WifiManager isn't handed this connection
+         * until that full handoff (see justProvisioned()), so this is
+         * armed here to keep the link alive on its own for however long
+         * that wait turns out to be.
+         */
+        WiFi.setAutoReconnect(true);
+
         connectAttempt_ = ConnectAttempt::Succeeded;
-        provisioned_ = true;
+        wifiConfirmed_ = true;
         return;
     }
 
@@ -171,7 +177,7 @@ void ProvisioningPortal::handleStatus() {
             return;
 
         case ConnectAttempt::Succeeded:
-            server_.send(200, "text/html", SuccessPage);
+            server_.send(200, "text/html", buildSuccessPage());
             return;
 
         case ConnectAttempt::Failed:
@@ -241,6 +247,19 @@ String ProvisioningPortal::buildConfigurationPage(const char* errorMessage) cons
             "</style></head><body>";
     html += "<h1>Configurar o Coracao Conectado</h1>";
 
+    /*
+     * Only shown while unpaired: a heart reopening this page during
+     * ADR-0004's automatic recovery is already paired, and showing a
+     * pairing code there would wrongly suggest re-pairing is needed.
+     */
+    if (!pairingSource_.isPaired()) {
+        html += "<p>Codigo de pareamento: <strong>";
+        html += pairingSource_.pairingCode();
+        html += "</strong></p>";
+        html += "<p>Peca para a pessoa que vai te mandar mensagens enviar esse "
+                "codigo para o bot no Telegram.</p>";
+    }
+
     if (errorMessage != nullptr) {
         html += "<p class=\"error\">";
         html += errorMessage;
@@ -256,6 +275,36 @@ String ProvisioningPortal::buildConfigurationPage(const char* errorMessage) cons
     html += "<input type=\"password\" name=\"password\" id=\"password\">";
     html += "<button type=\"submit\">Conectar</button>";
     html += "</form></body></html>";
+
+    return html;
+}
+
+String ProvisioningPortal::buildSuccessPage() const {
+    String html;
+    html.reserve(768);
+
+    html += "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+            "<title>Coracao Conectado</title></head>"
+            "<body style=\"font-family:sans-serif;max-width:420px;margin:32px auto;padding:0 16px;\">";
+    html += "<h1>Conectado!</h1>";
+
+    if (pairingSource_.isPaired()) {
+        /*
+         * Recovery per ADR-0004: WiFi just came back, pairing already
+         * happened long ago, so there is nothing left to wait on here.
+         */
+        html += "<p>O coracao esta se conectando a sua rede. Pode fechar esta pagina.</p>";
+    } else {
+        html += "<p>Agora peca para a pessoa que vai te mandar mensagens enviar este "
+                "codigo para o bot dela no Telegram:</p>";
+        html += "<p style=\"font-size:28px;font-weight:bold;text-align:center;\">";
+        html += pairingSource_.pairingCode();
+        html += "</p>";
+        html += "<p>Pode fechar esta pagina depois disso.</p>";
+    }
+
+    html += "</body></html>";
 
     return html;
 }

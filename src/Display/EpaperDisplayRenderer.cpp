@@ -54,20 +54,28 @@ void EpaperDisplayRenderer::showConnecting()
     });
 }
 
-void EpaperDisplayRenderer::showSetup(const char* apSsid)
+void EpaperDisplayRenderer::showSetup(const char* apSsid, const char* pairingCode)
 {
     LOG_DEBUG("Rendering setup screen");
 
     const String ssid(apSsid);
+    const String code(pairingCode);
 
-    display_.render([this, &ssid]()
+    /*
+     * An empty code means the heart is already paired and this Setup
+     * visit is ADR-0004's automatic recovery, not a fresh setup: showing
+     * a pairing code there would wrongly suggest re-pairing is needed.
+     */
+    const bool showCode = code.length() > 0;
+
+    display_.render([this, &ssid, &code, showCode]()
     {
         display_.setBoldFont();
 
         display_.drawCenteredText(
-            "Aguardando configuracao",
+            "Configuracao",
             display_.width() / 2,
-            38
+            showCode ? 18 : 38
         );
 
         display_.setRegularFont();
@@ -75,7 +83,7 @@ void EpaperDisplayRenderer::showSetup(const char* apSsid)
         display_.drawCenteredText(
             "Conecte-se a rede:",
             display_.width() / 2,
-            68
+            showCode ? 40 : 68
         );
 
         display_.setBoldFont();
@@ -83,7 +91,27 @@ void EpaperDisplayRenderer::showSetup(const char* apSsid)
         display_.drawCenteredText(
             ssid,
             display_.width() / 2,
-            94
+            showCode ? 60 : 94
+        );
+
+        if (!showCode) {
+            return;
+        }
+
+        display_.setRegularFont();
+
+        display_.drawCenteredText(
+            "Codigo de pareamento:",
+            display_.width() / 2,
+            84
+        );
+
+        display_.setBoldFont();
+
+        display_.drawCenteredText(
+            code,
+            display_.width() / 2,
+            106
         );
     });
 }

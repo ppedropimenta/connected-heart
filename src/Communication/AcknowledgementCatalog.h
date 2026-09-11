@@ -37,4 +37,12 @@ public:
      * both.
      */
     static const char* rejectedNotText();
+
+    /**
+     * @brief The correct pairing code was received, per ticket 12.
+     *
+     * A wrong code gets no reply at all: a stranger who finds the bot
+     * before pairing should learn nothing from it.
+     */
+    static const char* paired();
 };

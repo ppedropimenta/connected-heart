@@ -1,7 +1,7 @@
 /**
 * @file CompiledPairingSource.h
  * @brief Supplies the paired sender's chat identifier compiled into the
- * firmware, for bench work ahead of pairing by code (ticket 12).
+ * firmware, for bench work that skips pairing by code (ticket 12).
  */
 
 #pragma once
@@ -16,4 +16,6 @@
 class CompiledPairingSource : public PairingSource {
 public:
     const char* pairedChatId() const override;
+    const char* pairingCode() const override;
+    void bind(const char* chatId) override;
 };
