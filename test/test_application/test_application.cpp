@@ -311,6 +311,32 @@ void test_message_over_limit_is_rejected() {
     assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
 }
 
+void test_message_of_multibyte_characters_exactly_one_over_limit_is_rejected() {
+    Fixture fixture;
+
+    connect(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+
+    /*
+     * Config::MaximumMessageLength + 1 displayed characters, each a 2-byte
+     * transliterated accented letter (see TextMetrics). Raw byte length is
+     * (MaximumMessageLength + 1) * 2 = 172, one byte short of overflowing
+     * HeartMessage::TextCapacity - 1 (170) by exactly the boundary that
+     * used to let this slip past the length check: truncated to 170 bytes,
+     * it decodes to exactly 85 characters, which is not over the limit.
+     * The true, pre-truncation length is 86, which is.
+     */
+    std::string overLongMultibyte;
+    for (size_t i = 0; i <= Config::MaximumMessageLength; ++i) {
+        overLongMultibyte += "\xC3\xA3";
+    }
+
+    fixture.messageSource.enqueue(HeartMessage(overLongMultibyte.c_str()));
+    fixture.app.update();
+
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+}
+
 void test_accepted_message_reports_outcome_without_displacement() {
     Fixture fixture;
 
@@ -582,6 +608,7 @@ int main(int argc, char** argv) {
     RUN_TEST(test_storage_is_not_written_again_while_the_current_message_is_unchanged);
     RUN_TEST(test_restored_message_is_displayed_instead_of_the_waiting_screen);
     RUN_TEST(test_message_over_limit_is_rejected);
+    RUN_TEST(test_message_of_multibyte_characters_exactly_one_over_limit_is_rejected);
     RUN_TEST(test_accepted_message_reports_outcome_without_displacement);
     RUN_TEST(test_accepted_message_reports_outcome_with_displacement);
     RUN_TEST(test_rejected_message_reports_outcome_as_not_accepted);

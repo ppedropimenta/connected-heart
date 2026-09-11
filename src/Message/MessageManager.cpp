@@ -1,6 +1,5 @@
 #include "MessageManager.h"
 
-#include "TextMetrics.h"
 #include "Core/Config.h"
 
 bool MessageManager::receive(const HeartMessage& message) {
@@ -54,11 +53,9 @@ bool MessageManager::isValid(const HeartMessage& message) {
         return true;
     }
 
-    const char* text = message.text();
-
-    if (text[0] == '\0') {
+    if (message.text()[0] == '\0') {
         return false;
     }
 
-    return TextMetrics::displayedLength(text) <= Config::MaximumMessageLength;
+    return message.displayedTextLength() <= Config::MaximumMessageLength;
 }

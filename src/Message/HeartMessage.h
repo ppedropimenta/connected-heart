@@ -5,6 +5,7 @@
 
 #include "Feeling.h"
 #include "MessageKind.h"
+#include "TextMetrics.h"
 #include "Core/Config.h"
 
 /**
@@ -39,10 +40,14 @@ struct HeartMessage {
      * @brief Creates a Custom Message carrying its own text.
      *
      * @param text Null-terminated text to display. Must not be null.
-     * Text beyond TextCapacity - 1 bytes is truncated.
+     * Text beyond TextCapacity - 1 bytes is truncated. displayedTextLength()
+     * is measured on text as given here, before that truncation, so a
+     * caller checking it against a length limit sees the true length even
+     * when the raw text overflows the buffer.
      */
     explicit HeartMessage(const char* text)
         : kind_(MessageKind::Custom)
+        , displayedTextLength_(TextMetrics::displayedLength(text))
     {
         std::strncpy(payload_.text, text, TextCapacity - 1);
         payload_.text[TextCapacity - 1] = '\0';
@@ -64,6 +69,18 @@ struct HeartMessage {
      */
     [[nodiscard]] const char* text() const { return payload_.text; }
 
+    /**
+     * @brief The displayed length of this message's text.
+     *
+     * Only meaningful when kind() is MessageKind::Custom. Measured once,
+     * at construction, from the text as originally given — including any
+     * part beyond TextCapacity - 1 bytes that text() itself no longer
+     * carries — so a caller enforcing a length limit is comparing against
+     * the sender's true text, not against whatever survived truncation
+     * into the fixed buffer.
+     */
+    [[nodiscard]] size_t displayedTextLength() const { return displayedTextLength_; }
+
 private:
     /**
      * @brief Holds either a Feeling or text, never both at once.
@@ -80,4 +97,5 @@ private:
 
     MessageKind kind_;
     Payload payload_;
+    size_t displayedTextLength_ = 0;
 };
