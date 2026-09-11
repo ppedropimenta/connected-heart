@@ -26,6 +26,16 @@ public:
         queue_.push_back(message);
     }
 
+    void reportOutcome(const bool accepted, const bool wasPendingDisplaced) override {
+        outcomeReportCount++;
+        lastAccepted = accepted;
+        lastWasPendingDisplaced = wasPendingDisplaced;
+    }
+
+    int outcomeReportCount = 0;
+    bool lastAccepted = false;
+    bool lastWasPendingDisplaced = false;
+
 private:
     std::deque<HeartMessage> queue_;
 };

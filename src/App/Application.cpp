@@ -53,8 +53,12 @@ void Application::processInputs() {
 
     if (messageSource_.hasMessage()) {
         const HeartMessage message = messageSource_.takeMessage();
+        const bool hadUnrevealedPending = messageManager_.hasPending();
+        const bool accepted = messageManager_.receive(message);
 
-        if (messageManager_.receive(message)) {
+        messageSource_.reportOutcome(accepted, accepted && hadUnrevealedPending);
+
+        if (accepted) {
             processEvent(DeviceEvent::MessageReceived);
         }
     }

@@ -2,6 +2,7 @@
 
 #include <WiFi.h>
 
+#include "Communication/AcknowledgementCatalog.h"
 #include "Communication/MessageTextResolver.h"
 #include "Core/Config.h"
 #include "Core/Log.h"
@@ -71,11 +72,38 @@ void TelegramMessageSource::handleUpdate(const telegramMessage& message) {
     }
 
     if (message.text.length() == 0) {
+        reply(message.chat_id, AcknowledgementCatalog::rejectedNotText());
+        LOG_INFO("Telegram update with no usable text rejected");
         return;
     }
 
     pending_ = MessageTextResolver::resolve(message.text.c_str());
     hasPending_ = true;
+    pendingChatId_ = message.chat_id;
 
     LOG_INFO("Telegram message received");
+}
+
+void TelegramMessageSource::reportOutcome(const bool accepted, const bool wasPendingDisplaced) {
+    if (accepted) {
+        reply(
+            pendingChatId_,
+            wasPendingDisplaced
+                ? AcknowledgementCatalog::deliveredReplacingUnrevealed()
+                : AcknowledgementCatalog::delivered()
+        );
+        return;
+    }
+
+    /*
+     * The only way MessageManager can reject a message that reached this
+     * point is the length limit: an empty Custom Message can't reach
+     * here, since the empty-text branch above returns before pending_ is
+     * ever set, and a Predefined Message is always valid.
+     */
+    reply(pendingChatId_, AcknowledgementCatalog::rejectedTooLong());
+}
+
+void TelegramMessageSource::reply(const String& chatId, const char* text) {
+    bot_.sendMessage(chatId, text, "");
 }

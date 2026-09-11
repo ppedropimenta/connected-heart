@@ -12,8 +12,17 @@
  * The paired sender's chat identifier comes from a PairingSource, whose
  * only implementation for now (CompiledPairingSource) reads it in
  * compiled alongside the WiFi credentials; the pairing-by-code flow that
- * learns it at runtime is ticket 12, behind the same seam. Acknowledgements
- * and rejection replies are not sent here; see ticket 10.
+ * learns it at runtime is ticket 12, behind the same seam.
+ *
+ * Per ADR-0002 and ticket 10, the bot also replies to the sender: an
+ * update with no usable text (empty, or unsupported content such as a
+ * photo, sticker, or voice note) is rejected immediately in
+ * handleUpdate(); an update that resolves to a HeartMessage is
+ * acknowledged or rejected as too long from reportOutcome(), once
+ * Application has told this source what MessageManager decided. An
+ * update from an unpaired chat gets no reply of any kind. Wording lives
+ * in AcknowledgementCatalog, which is unit tested on the host since this
+ * class is not.
  *
  * This is a thin wrapper over UniversalTelegramBot, a third-party library
  * over Telegram's HTTP API, and is not unit tested for the same reason
@@ -49,6 +58,8 @@ public:
     bool hasMessage() const override;
     HeartMessage takeMessage() override;
 
+    void reportOutcome(bool accepted, bool wasPendingDisplaced) override;
+
 private:
     /**
      * Safety bound on how many sequential getUpdates() calls a single
@@ -60,6 +71,7 @@ private:
 
     void poll();
     void handleUpdate(const telegramMessage& message);
+    void reply(const String& chatId, const char* text);
 
     PairingSource& pairingSource_;
 
@@ -70,4 +82,12 @@ private:
 
     HeartMessage pending_ = HeartMessage(Feeling::Love);
     bool hasPending_ = false;
+
+    /**
+     * Chat to reply to from reportOutcome(), remembered from the update
+     * that produced pending_. A single-slot buffer like pending_ itself:
+     * safe because Application always drains one message (and reports
+     * its outcome) before this source's next update() can produce another.
+     */
+    String pendingChatId_;
 };

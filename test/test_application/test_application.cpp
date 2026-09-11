@@ -311,6 +311,43 @@ void test_message_over_limit_is_rejected() {
     assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
 }
 
+void test_accepted_message_reports_outcome_without_displacement() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    TEST_ASSERT_EQUAL(1, fixture.messageSource.outcomeReportCount);
+    TEST_ASSERT_TRUE(fixture.messageSource.lastAccepted);
+    TEST_ASSERT_FALSE(fixture.messageSource.lastWasPendingDisplaced);
+}
+
+void test_accepted_message_reports_outcome_with_displacement() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    fixture.messageSource.enqueue(HeartMessage("Boa noite"));
+    fixture.app.update();
+
+    TEST_ASSERT_EQUAL(2, fixture.messageSource.outcomeReportCount);
+    TEST_ASSERT_TRUE(fixture.messageSource.lastAccepted);
+    TEST_ASSERT_TRUE(fixture.messageSource.lastWasPendingDisplaced);
+}
+
+void test_rejected_message_reports_outcome_as_not_accepted() {
+    Fixture fixture;
+
+    const std::string overLong(Config::MaximumMessageLength + 1, 'a');
+
+    fixture.messageSource.enqueue(HeartMessage(overLong.c_str()));
+    fixture.app.update();
+
+    TEST_ASSERT_EQUAL(1, fixture.messageSource.outcomeReportCount);
+    TEST_ASSERT_FALSE(fixture.messageSource.lastAccepted);
+}
+
 void test_touch_without_pending_message_does_nothing() {
     Fixture fixture;
 
@@ -545,6 +582,9 @@ int main(int argc, char** argv) {
     RUN_TEST(test_storage_is_not_written_again_while_the_current_message_is_unchanged);
     RUN_TEST(test_restored_message_is_displayed_instead_of_the_waiting_screen);
     RUN_TEST(test_message_over_limit_is_rejected);
+    RUN_TEST(test_accepted_message_reports_outcome_without_displacement);
+    RUN_TEST(test_accepted_message_reports_outcome_with_displacement);
+    RUN_TEST(test_rejected_message_reports_outcome_as_not_accepted);
     RUN_TEST(test_touch_without_pending_message_does_nothing);
     RUN_TEST(test_unprovisioned_boot_starts_in_setup);
     RUN_TEST(test_provisioned_boot_starts_waking);
