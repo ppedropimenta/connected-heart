@@ -1,6 +1,7 @@
 /**
 * @file GpioTouchSensor.h
- * @brief Debounced TouchSensor reading a digital touch module on GPIO21.
+ * @brief Debounced TouchSensor reading a digital touch module on the pin
+ * configured as Pins::Touch::TOUCH.
  */
 
 #pragma once

@@ -46,11 +46,11 @@ namespace Pins {
     }
 
     namespace NotificationLed {
-        constexpr Pin LED_DATA = GPIO_20;
+        constexpr Pin LED_DATA = GPIO_5;
     }
 
     namespace Touch {
-        constexpr Pin TOUCH = GPIO_21;
+        constexpr Pin TOUCH = GPIO_0;
     }
 
     namespace Battery {
