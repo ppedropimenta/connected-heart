@@ -14,6 +14,7 @@ void WifiManager::begin() {
     const WifiCredentials credentials = credentialSource_.credentials();
 
     LOG_INFO("Connecting to WiFi network %s", credentials.ssid);
+    LOG_DEBUG("WiFi mode STA, autoReconnect on, retry interval %lums", Config::WifiRetryIntervalMs);
 
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
@@ -28,6 +29,12 @@ void WifiManager::update() {
     if (connected) {
         if (!wasConnected_) {
             LOG_INFO("WiFi connected");
+            LOG_DEBUG(
+                "WiFi IP %s, RSSI %ddBm",
+                WiFi.localIP().toString().c_str(),
+                WiFi.RSSI()
+            );
+
             justConnected_ = true;
         }
 
@@ -37,6 +44,7 @@ void WifiManager::update() {
 
     if (wasConnected_) {
         LOG_WARN("WiFi disconnected");
+        LOG_DEBUG("WiFi status %d at disconnect", static_cast<int>(WiFi.status()));
 
         justDisconnected_ = true;
         attemptFailed_ = true;
@@ -55,6 +63,8 @@ void WifiManager::update() {
      * silently.
      */
     if (millis() - lastAttemptAt_ >= Config::WifiRetryIntervalMs) {
+        LOG_DEBUG("WiFi retry: still disconnected (status %d), reconnecting", static_cast<int>(WiFi.status()));
+
         attemptFailed_ = true;
         lastAttemptAt_ = millis();
 
