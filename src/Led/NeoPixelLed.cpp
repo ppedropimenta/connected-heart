@@ -6,7 +6,7 @@
 #include "Core/Pins.h"
 
 namespace {
-    constexpr uint16_t PIXEL_COUNT = 1;
+    constexpr uint16_t PIXEL_COUNT = 3;
     constexpr uint8_t FULL_BRIGHTNESS = 255;
 
     /*
@@ -96,8 +96,8 @@ void NeoPixelLed::update() {
 }
 
 /**
- * @brief Sets the pixel to a colour whose channels are scaled by
- * brightness out of a fixed 0-255 range.
+ * @brief Sets every pixel in the chain to a colour whose channels are
+ * scaled by brightness out of a fixed 0-255 range.
  *
  * brightness is always relative to full scale rather than to a pattern's
  * own cap, so a dim pattern (a low brightness ceiling passed to breathe(),
@@ -110,12 +110,11 @@ void NeoPixelLed::setColorAtBrightness(
     const uint8_t maxBlue,
     const uint8_t brightness
 ) {
-    pixel_.setPixelColor(
-        0,
+    pixel_.fill(Adafruit_NeoPixel::Color(
         static_cast<uint8_t>((static_cast<uint16_t>(maxRed) * brightness) / FULL_BRIGHTNESS),
         static_cast<uint8_t>((static_cast<uint16_t>(maxGreen) * brightness) / FULL_BRIGHTNESS),
         static_cast<uint8_t>((static_cast<uint16_t>(maxBlue) * brightness) / FULL_BRIGHTNESS)
-    );
+    ));
 }
 
 void NeoPixelLed::render() {
@@ -144,7 +143,7 @@ void NeoPixelLed::render() {
 
         case LedPattern::NotificationPulse:
             setColorAtBrightness(
-                255, 20, 90,
+                255, 25, 0,
                 breathe(elapsedMs, Config::LedPulsePeriodMs, NOTIFICATION_MAX_BRIGHTNESS)
             );
             break;
