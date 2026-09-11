@@ -33,8 +33,11 @@ public:
     /**
      * @brief Displays the setup screen for a heart with no usable network
      * or Pairing.
+     *
+     * @param apSsid Name of the access point the heart is offering, so the
+     * recipient knows which network to join.
      */
-    virtual void showSetup() = 0;
+    virtual void showSetup(const char* apSsid) = 0;
 
     /**
      * @brief Displays the normal waiting screen.

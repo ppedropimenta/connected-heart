@@ -1,7 +1,7 @@
 /**
 * @file CompiledCredentialSource.h
  * @brief Supplies WiFi credentials compiled into the firmware, for bench
- * work ahead of the captive portal (ticket 11).
+ * work that skips the captive portal (see ProvisioningPortal).
  */
 
 #pragma once

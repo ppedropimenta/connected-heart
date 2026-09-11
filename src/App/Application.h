@@ -50,6 +50,15 @@ public:
     void update();
 
     /**
+     * @brief The current stage of the main product flow.
+     *
+     * Exposed so main.cpp can tell when to raise or tear down the
+     * captive portal (ProvisioningPortal), which Application itself never
+     * touches: it does not manage WiFi.
+     */
+    DeviceState state() const;
+
+    /**
      * @brief Reports that Setup has produced a usable network and Pairing.
      *
      * Called once the captive portal and pairing have both completed.

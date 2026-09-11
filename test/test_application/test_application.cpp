@@ -396,6 +396,7 @@ void test_unprovisioned_boot_starts_in_setup() {
 
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
     assertLedPattern(LedPattern::Setup, led.lastPattern);
+    TEST_ASSERT_EQUAL_STRING(Config::ProvisioningApSsid, renderer.lastApSsid.c_str());
 }
 
 void test_provisioned_boot_starts_waking() {

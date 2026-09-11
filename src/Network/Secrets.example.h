@@ -1,8 +1,9 @@
 /**
 * @file Secrets.example.h
  * @brief Template for the compiled-in WiFi credentials (CompiledCredentialSource)
- * and Telegram identity (TelegramMessageSource) used for bench work, ahead
- * of the captive portal (ticket 11) and pairing by code (ticket 12).
+ * and Telegram identity (TelegramMessageSource) used for bench work that
+ * skips the captive portal (see ProvisioningPortal) and pairing by code
+ * (ticket 12, not yet implemented).
  *
  * Copy this file to Secrets.h and fill in a real network, bot token, and
  * chat identifier. Secrets.h is excluded from version control by

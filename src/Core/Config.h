@@ -54,4 +54,19 @@ namespace Config
      * enough that a new message shows up promptly.
      */
     constexpr unsigned long TelegramPollIntervalMs = 3000;
+
+    /**
+     * Name of the access point Setup raises so an unprovisioned heart can
+     * be configured from a phone. Fixed rather than derived from the chip,
+     * since a recipient only ever configures one heart at a time. See
+     * ProvisioningPortal.
+     */
+    constexpr const char* ProvisioningApSsid = "Connected Heart";
+
+    /**
+     * How long ProvisioningPortal waits for a submitted candidate network
+     * to connect before treating it as a wrong password, discarding the
+     * attempt, and returning the recipient to the configuration page.
+     */
+    constexpr unsigned long ProvisioningConnectTimeoutMs = 15000;
 }

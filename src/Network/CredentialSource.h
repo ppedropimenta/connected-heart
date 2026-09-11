@@ -5,8 +5,9 @@
  *
  * This is the seam behind which a compiled-in path
  * (CompiledCredentialSource, for bench work) and the captive portal's
- * provisioned path (ticket 11) are interchangeable. WifiManager depends on
- * this interface and never on a concrete source.
+ * provisioned path (NvsCredentialSource, see ProvisioningPortal) are
+ * interchangeable. WifiManager depends on this interface and never on a
+ * concrete source.
  */
 
 #pragma once

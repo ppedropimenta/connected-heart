@@ -16,7 +16,7 @@ public:
 
     void showStartup() override;
     void showConnecting() override;
-    void showSetup() override;
+    void showSetup(const char* apSsid) override;
 
     void showWaitingForMessage(
         ConnectionState connectionState

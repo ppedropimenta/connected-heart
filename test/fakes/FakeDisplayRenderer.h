@@ -25,8 +25,9 @@ public:
         lastScreen = Screen::Connecting;
     }
 
-    void showSetup() override {
+    void showSetup(const char* apSsid) override {
         lastScreen = Screen::Setup;
+        lastApSsid = apSsid;
     }
 
     void showWaitingForMessage(const ConnectionState connectionState) override {
@@ -53,4 +54,5 @@ public:
     Screen lastScreen = Screen::None;
     ConnectionState lastConnectionState = ConnectionState::Connecting;
     std::string lastMessageText;
+    std::string lastApSsid;
 };

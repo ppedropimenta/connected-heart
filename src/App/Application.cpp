@@ -80,6 +80,10 @@ void Application::processTimers() {
     }
 }
 
+DeviceState Application::state() const {
+    return stateMachine_.state();
+}
+
 void Application::notifyProvisioningFinished() {
     processEvent(DeviceEvent::ProvisioningFinished);
 }
@@ -144,7 +148,7 @@ void Application::renderState(const DeviceState state) {
             break;
 
         case DeviceState::Setup:
-            renderer_.showSetup();
+            renderer_.showSetup(Config::ProvisioningApSsid);
             break;
 
         case DeviceState::Waking:

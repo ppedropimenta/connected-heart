@@ -9,6 +9,8 @@
 #include "Display/EpaperDisplayRenderer.h"
 #include "Led/NeoPixelLed.h"
 #include "Network/CompiledCredentialSource.h"
+#include "Network/NvsCredentialSource.h"
+#include "Network/ProvisioningPortal.h"
 #include "Network/Secrets.h"
 #include "Network/WifiManager.h"
 #include "Storage/NvsMessageStorage.h"
@@ -23,10 +25,39 @@ namespace {
     TelegramMessageSource messageSource(TELEGRAM_BOT_TOKEN, pairingSource);
     NvsMessageStorage storage;
     ArduinoClock clock;
+
+#ifdef USE_COMPILED_CREDENTIALS
+    /*
+     * Bench build: credentials are compiled in from Secrets.h and the
+     * captive portal is skipped entirely, so nobody has to click through
+     * it on every flash. See platformio.ini for how to enable this.
+     */
     CompiledCredentialSource credentialSource;
+#else
+    NvsCredentialSource credentialSource;
+    ProvisioningPortal provisioningPortal(credentialSource);
+#endif
+
     WifiManager wifiManager(credentialSource);
 
     Application app(renderer, led, touch, messageSource, storage, clock);
+
+    /**
+     * @brief Polls WifiManager and translates its signals into Application
+     * events. Shared by both the provisioned and captive-portal paths
+     * through loop() below.
+     */
+    void handleWifiManagerEvents() {
+        wifiManager.update();
+
+        if (wifiManager.justConnected()) {
+            app.notifyConnectionEstablished();
+        }
+
+        if (wifiManager.attemptFailed()) {
+            app.notifyConnectionAttemptFailed();
+        }
+    }
 }
 
 void setup() {
@@ -39,29 +70,46 @@ void setup() {
     led.begin();
     touch.begin();
     messageSource.begin();
-    wifiManager.begin();
 
-    /*
-     * The captive portal doesn't exist yet (ticket 11), so credentials are
-     * always compiled in (CompiledCredentialSource) and the heart is
-     * treated as already provisioned. Whether it can actually reach that
-     * network is reported for real by wifiManager, below.
-     */
-    app.begin(true);
+#ifdef USE_COMPILED_CREDENTIALS
+    const bool provisioned = true;
+#else
+    const bool provisioned = credentialSource.hasCredentials();
+#endif
+
+    if (provisioned) {
+        wifiManager.begin();
+    }
+
+    app.begin(provisioned);
 
     LOG_INFO("Application initialized");
 }
 
 void loop() {
-    wifiManager.update();
+#ifndef USE_COMPILED_CREDENTIALS
+    if (app.state() == DeviceState::Setup) {
+        if (!provisioningPortal.active()) {
+            provisioningPortal.begin();
+        }
 
-    if (wifiManager.justConnected()) {
-        app.notifyConnectionEstablished();
+        provisioningPortal.update();
+
+        if (provisioningPortal.justProvisioned()) {
+            provisioningPortal.end();
+            wifiManager.begin();
+            app.notifyProvisioningFinished();
+        }
+
+        app.update();
+        return;
     }
 
-    if (wifiManager.attemptFailed()) {
-        app.notifyConnectionAttemptFailed();
+    if (provisioningPortal.active()) {
+        provisioningPortal.end();
     }
+#endif
 
+    handleWifiManagerEvents();
     app.update();
 }

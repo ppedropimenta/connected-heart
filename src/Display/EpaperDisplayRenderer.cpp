@@ -54,26 +54,36 @@ void EpaperDisplayRenderer::showConnecting()
     });
 }
 
-void EpaperDisplayRenderer::showSetup()
+void EpaperDisplayRenderer::showSetup(const char* apSsid)
 {
     LOG_DEBUG("Rendering setup screen");
 
-    display_.render([this]()
+    const String ssid(apSsid);
+
+    display_.render([this, &ssid]()
     {
         display_.setBoldFont();
 
         display_.drawCenteredText(
             "Aguardando configuracao",
             display_.width() / 2,
-            45
+            38
         );
 
         display_.setRegularFont();
 
         display_.drawCenteredText(
-            "Conecte-se a rede do coracao",
+            "Conecte-se a rede:",
             display_.width() / 2,
-            78
+            68
+        );
+
+        display_.setBoldFont();
+
+        display_.drawCenteredText(
+            ssid,
+            display_.width() / 2,
+            94
         );
     });
 }
