@@ -35,6 +35,14 @@ namespace Config
     constexpr unsigned int MaxConsecutiveConnectionFailures = 5;
 
     /**
+     * How long WifiManager waits between reconnection attempts while
+     * disconnected. Combined with MaxConsecutiveConnectionFailures this sets
+     * how long the heart tries before giving up and returning to Setup;
+     * provisional pending hardware tuning, per ticket 08.
+     */
+    constexpr unsigned long WifiRetryIntervalMs = 30000;
+
+    /**
      * Counted in displayed characters after transliteration, not in bytes,
      * so accented Portuguese is not penalised. See MessageManager.
      */

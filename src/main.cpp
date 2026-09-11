@@ -7,6 +7,8 @@
 #include "Display/EpaperDisplay.h"
 #include "Display/EpaperDisplayRenderer.h"
 #include "Led/NeoPixelLed.h"
+#include "Network/CompiledCredentialSource.h"
+#include "Network/WifiManager.h"
 #include "Storage/NvsMessageStorage.h"
 #include "Touch/GpioTouchSensor.h"
 
@@ -18,6 +20,8 @@ namespace {
     SerialMessageSource messageSource;
     NvsMessageStorage storage;
     ArduinoClock clock;
+    CompiledCredentialSource credentialSource;
+    WifiManager wifiManager(credentialSource);
 
     Application app(renderer, led, touch, messageSource, storage, clock);
 }
@@ -32,19 +36,29 @@ void setup() {
     led.begin();
     touch.begin();
     messageSource.begin();
+    wifiManager.begin();
 
     /*
-     * WifiManager does not exist yet (ticket 08), so there is no real
-     * network to wait for. The heart is treated as already provisioned and
-     * connected, landing straight in WaitingForMessage, so the receive
-     * path built here can be exercised end to end over Serial.
+     * The captive portal doesn't exist yet (ticket 11), so credentials are
+     * always compiled in (CompiledCredentialSource) and the heart is
+     * treated as already provisioned. Whether it can actually reach that
+     * network is reported for real by wifiManager, below.
      */
     app.begin(true);
-    app.notifyConnectionEstablished();
 
     LOG_INFO("Application initialized");
 }
 
 void loop() {
+    wifiManager.update();
+
+    if (wifiManager.justConnected()) {
+        app.notifyConnectionEstablished();
+    }
+
+    if (wifiManager.attemptFailed()) {
+        app.notifyConnectionAttemptFailed();
+    }
+
     app.update();
 }

@@ -60,15 +60,18 @@ public:
      * @brief Reports that the heart's connection is up.
      *
      * Also clears the consecutive-failure count kept for
-     * DeviceEvent::ConnectionAttemptsExhausted.
+     * DeviceEvent::ConnectionAttemptsExhausted, and clears the connection
+     * indicator from whichever screen is currently shown.
      */
     void notifyConnectionEstablished();
 
     /**
      * @brief Reports that a single connection attempt has failed.
      *
-     * Once Config::MaxConsecutiveConnectionFailures consecutive failures
-     * have been reported, raises DeviceEvent::ConnectionAttemptsExhausted.
+     * Shows the connection indicator on whichever screen is currently
+     * shown, without disturbing anything else already on it. Once
+     * Config::MaxConsecutiveConnectionFailures consecutive failures have
+     * been reported, raises DeviceEvent::ConnectionAttemptsExhausted.
      */
     void notifyConnectionAttemptFailed();
 
@@ -88,6 +91,23 @@ private:
     bool processEvent(DeviceEvent event, bool provisioned = true);
 
     void enterState(DeviceState state);
+
+    /**
+     * @brief Renders the given DeviceState's screen and LED pattern using
+     * the current connectionState_.
+     *
+     * Shared by enterState() (a DeviceState transition) and
+     * setConnectionState() (a connection change with no DeviceState
+     * transition), so the connection indicator can be refreshed on the
+     * screen already showing without re-entering it.
+     */
+    void renderState(DeviceState state);
+
+    /**
+     * @brief Updates connectionState_ and, if it changed, refreshes the
+     * currently shown screen and LED pattern to reflect it.
+     */
+    void setConnectionState(ConnectionState state);
 
     /**
      * @brief Resolves and shows the Current Message.
@@ -111,4 +131,5 @@ private:
 
     unsigned long stateEnteredAt_ = 0;
     unsigned int consecutiveConnectionFailures_ = 0;
+    ConnectionState connectionState_ = ConnectionState::Connecting;
 };

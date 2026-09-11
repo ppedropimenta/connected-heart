@@ -82,11 +82,14 @@ void Application::notifyProvisioningFinished() {
 
 void Application::notifyConnectionEstablished() {
     consecutiveConnectionFailures_ = 0;
+    setConnectionState(ConnectionState::Connected);
 
     processEvent(DeviceEvent::ConnectionEstablished);
 }
 
 void Application::notifyConnectionAttemptFailed() {
+    setConnectionState(ConnectionState::Error);
+
     ++consecutiveConnectionFailures_;
 
     if (consecutiveConnectionFailures_ < Config::MaxConsecutiveConnectionFailures) {
@@ -128,6 +131,10 @@ bool Application::processEvent(const DeviceEvent event, const bool provisioned) 
 void Application::enterState(const DeviceState state) {
     stateEnteredAt_ = clock_.millis();
 
+    renderState(state);
+}
+
+void Application::renderState(const DeviceState state) {
     switch (state) {
         case DeviceState::Boot:
             break;
@@ -149,16 +156,16 @@ void Application::enterState(const DeviceState state) {
             if (messageManager_.hasCurrent()) {
                 showCurrentMessage();
             } else {
-                renderer_.showWaitingForMessage(ConnectionState::Connected);
+                renderer_.showWaitingForMessage(connectionState_);
             }
             break;
 
         case DeviceState::Notification:
-            renderer_.showNotification(ConnectionState::Connected);
+            renderer_.showNotification(connectionState_);
             break;
 
         case DeviceState::RevealingMessage:
-            renderer_.showRevealHeart(ConnectionState::Connected);
+            renderer_.showRevealHeart(connectionState_);
             break;
 
         case DeviceState::DisplayingMessage:
@@ -167,8 +174,25 @@ void Application::enterState(const DeviceState state) {
     }
 
     if (state != DeviceState::Boot) {
-        led_.show(LedPatternSelector::select(state, ConnectionState::Connected));
+        led_.show(LedPatternSelector::select(state, connectionState_));
     }
+}
+
+void Application::setConnectionState(const ConnectionState state) {
+    if (connectionState_ == state) {
+        return;
+    }
+
+    connectionState_ = state;
+
+    /*
+     * A connection change alone never changes DeviceState (that's
+     * ConnectionAttemptsExhausted's job once failures accumulate), so
+     * enterState() will not run on its own here. The screen already shown
+     * and the LED pattern are refreshed directly instead, so the indicator
+     * appears (or clears) without disturbing anything else on screen.
+     */
+    renderState(stateMachine_.state());
 }
 
 void Application::showCurrentMessage() {
@@ -176,6 +200,6 @@ void Application::showCurrentMessage() {
 
     renderer_.showMessage(
         message != nullptr ? MessageCatalog::resolve(*message) : "",
-        ConnectionState::Connected
+        connectionState_
     );
 }

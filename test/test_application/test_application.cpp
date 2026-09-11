@@ -75,6 +75,16 @@ namespace {
         );
     }
 
+    void assertConnectionState(
+        const ConnectionState expected,
+        const ConnectionState actual
+    ) {
+        TEST_ASSERT_EQUAL(
+            static_cast<int>(expected),
+            static_cast<int>(actual)
+        );
+    }
+
     void reveal(Fixture& fixture) {
         fixture.touch.press();
         fixture.app.update();
@@ -416,6 +426,93 @@ void test_connection_attempts_are_not_exhausted_before_the_configured_count() {
     assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
 }
 
+void test_connection_error_shows_indicator_on_waiting_screen() {
+    Fixture fixture;
+
+    connect(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::Off, fixture.led.lastPattern);
+
+    fixture.app.notifyConnectionAttemptFailed();
+
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+    assertConnectionState(ConnectionState::Error, fixture.renderer.lastConnectionState);
+    assertLedPattern(LedPattern::ConnectionError, fixture.led.lastPattern);
+}
+
+void test_connection_error_shows_indicator_on_notification_screen_without_changing_led() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+    assertLedPattern(LedPattern::NotificationPulse, fixture.led.lastPattern);
+
+    fixture.app.notifyConnectionAttemptFailed();
+
+    assertScreen(FakeDisplayRenderer::Screen::Notification, fixture.renderer.lastScreen);
+    assertConnectionState(ConnectionState::Error, fixture.renderer.lastConnectionState);
+
+    /*
+     * The more important thing (a message is waiting) wins the LED: the
+     * display already carries the indicator, so the LED doesn't duplicate
+     * it during a Notification. See spec Presentation / ADR-driven pattern
+     * precedence.
+     */
+    assertLedPattern(LedPattern::NotificationPulse, fixture.led.lastPattern);
+}
+
+void test_connection_error_shows_indicator_during_reveal_without_changing_led() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    fixture.touch.press();
+    fixture.app.update();
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+
+    fixture.app.notifyConnectionAttemptFailed();
+
+    assertScreen(FakeDisplayRenderer::Screen::RevealHeart, fixture.renderer.lastScreen);
+    assertConnectionState(ConnectionState::Error, fixture.renderer.lastConnectionState);
+    assertLedPattern(LedPattern::RevealHeartbeat, fixture.led.lastPattern);
+}
+
+void test_connection_error_does_not_disturb_a_displayed_message() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Primeira mensagem", fixture.renderer.lastMessageText.c_str());
+    assertLedPattern(LedPattern::Off, fixture.led.lastPattern);
+
+    fixture.app.notifyConnectionAttemptFailed();
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Primeira mensagem", fixture.renderer.lastMessageText.c_str());
+    assertConnectionState(ConnectionState::Error, fixture.renderer.lastConnectionState);
+    assertLedPattern(LedPattern::ConnectionError, fixture.led.lastPattern);
+}
+
+void test_reconnecting_clears_the_indicator() {
+    Fixture fixture;
+
+    connect(fixture);
+    fixture.app.notifyConnectionAttemptFailed();
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+    assertConnectionState(ConnectionState::Error, fixture.renderer.lastConnectionState);
+
+    fixture.app.notifyConnectionEstablished();
+
+    assertScreen(FakeDisplayRenderer::Screen::WaitingForMessage, fixture.renderer.lastScreen);
+    assertConnectionState(ConnectionState::Connected, fixture.renderer.lastConnectionState);
+    assertLedPattern(LedPattern::Off, fixture.led.lastPattern);
+}
+
 void test_connection_established_resets_the_failure_count() {
     Fixture fixture;
 
@@ -457,6 +554,11 @@ int main(int argc, char** argv) {
     RUN_TEST(test_connection_attempts_exhausted_from_notification_returns_to_setup);
     RUN_TEST(test_connection_attempts_exhausted_from_displaying_message_returns_to_setup);
     RUN_TEST(test_connection_attempts_are_not_exhausted_before_the_configured_count);
+    RUN_TEST(test_connection_error_shows_indicator_on_waiting_screen);
+    RUN_TEST(test_connection_error_shows_indicator_on_notification_screen_without_changing_led);
+    RUN_TEST(test_connection_error_shows_indicator_during_reveal_without_changing_led);
+    RUN_TEST(test_connection_error_does_not_disturb_a_displayed_message);
+    RUN_TEST(test_reconnecting_clears_the_indicator);
     RUN_TEST(test_connection_established_resets_the_failure_count);
 
     return UNITY_END();
