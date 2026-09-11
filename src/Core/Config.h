@@ -47,4 +47,11 @@ namespace Config
      * so accented Portuguese is not penalised. See MessageManager.
      */
     constexpr size_t MaximumMessageLength = 85;
+
+    /**
+     * How often TelegramMessageSource calls getUpdates(). Long enough to
+     * stay well clear of Telegram's rate limits between messages, short
+     * enough that a new message shows up promptly.
+     */
+    constexpr unsigned long TelegramPollIntervalMs = 3000;
 }

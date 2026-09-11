@@ -1,6 +1,6 @@
 #include "SerialMessageSource.h"
 
-#include "Communication/SerialLineParser.h"
+#include "Communication/MessageTextResolver.h"
 #include "Core/Log.h"
 
 void SerialMessageSource::begin() {
@@ -42,14 +42,7 @@ void SerialMessageSource::handleLine() {
         return;
     }
 
-    Feeling feeling;
-
-    if (SerialLineParser::tryParseFeeling(lineBuffer_, feeling)) {
-        pending_ = HeartMessage(feeling);
-    } else {
-        pending_ = HeartMessage(lineBuffer_);
-    }
-
+    pending_ = MessageTextResolver::resolve(lineBuffer_);
     hasPending_ = true;
 
     LOG_INFO("Serial message received");
