@@ -7,6 +7,7 @@
 #include "Display/EpaperDisplay.h"
 #include "Display/EpaperDisplayRenderer.h"
 #include "Led/NeoPixelLed.h"
+#include "Storage/NvsMessageStorage.h"
 #include "Touch/GpioTouchSensor.h"
 
 namespace {
@@ -15,9 +16,10 @@ namespace {
     NeoPixelLed led;
     GpioTouchSensor touch;
     SerialMessageSource messageSource;
+    NvsMessageStorage storage;
     ArduinoClock clock;
 
-    Application app(renderer, led, touch, messageSource, clock);
+    Application app(renderer, led, touch, messageSource, storage, clock);
 }
 
 void setup() {

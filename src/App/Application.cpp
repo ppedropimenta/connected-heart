@@ -10,18 +10,26 @@ Application::Application(
     Led& led,
     TouchSensor& touch,
     MessageSource& messageSource,
+    MessageStorage& storage,
     Clock& clock
 )
     : renderer_(renderer)
     , led_(led)
     , touch_(touch)
     , messageSource_(messageSource)
+    , storage_(storage)
     , clock_(clock)
 {
 }
 
 void Application::begin(const bool provisioned) {
     LOG_INFO("Initializing application modules");
+
+    const HeartMessage* restoredMessage = storage_.loadCurrentMessage();
+
+    if (restoredMessage != nullptr) {
+        messageManager_.restoreCurrent(*restoredMessage);
+    }
 
     renderer_.showStartup();
 
@@ -102,9 +110,12 @@ bool Application::processEvent(const DeviceEvent event, const bool provisioned) 
     if (event == DeviceEvent::RevealFinished && newState == DeviceState::DisplayingMessage) {
         /*
          * The reveal completed without being interrupted by another
-         * message, so the pending message becomes the current one.
+         * message, so the pending message becomes the current one. This is
+         * the only place the Current Message changes, so it is also the
+         * only place storage needs to be written.
          */
         messageManager_.revealPending();
+        storage_.saveCurrentMessage(*messageManager_.current());
     }
 
     if (newState != previousState) {
@@ -130,7 +141,16 @@ void Application::enterState(const DeviceState state) {
             break;
 
         case DeviceState::WaitingForMessage:
-            renderer_.showWaitingForMessage(ConnectionState::Connected);
+            /*
+             * A Current Message restored from storage is displayed rather
+             * than the waiting screen: the recipient should never see an
+             * empty screen when a message is actually available.
+             */
+            if (messageManager_.hasCurrent()) {
+                showCurrentMessage();
+            } else {
+                renderer_.showWaitingForMessage(ConnectionState::Connected);
+            }
             break;
 
         case DeviceState::Notification:
@@ -141,18 +161,21 @@ void Application::enterState(const DeviceState state) {
             renderer_.showRevealHeart(ConnectionState::Connected);
             break;
 
-        case DeviceState::DisplayingMessage: {
-            const HeartMessage* message = messageManager_.current();
-
-            renderer_.showMessage(
-                message != nullptr ? MessageCatalog::resolve(*message) : "",
-                ConnectionState::Connected
-            );
+        case DeviceState::DisplayingMessage:
+            showCurrentMessage();
             break;
-        }
     }
 
     if (state != DeviceState::Boot) {
         led_.show(LedPatternSelector::select(state, ConnectionState::Connected));
     }
+}
+
+void Application::showCurrentMessage() {
+    const HeartMessage* message = messageManager_.current();
+
+    renderer_.showMessage(
+        message != nullptr ? MessageCatalog::resolve(*message) : "",
+        ConnectionState::Connected
+    );
 }

@@ -1,34 +1,7 @@
 #include "MessageManager.h"
 
-#include <new>
-
 #include "TextMetrics.h"
 #include "Core/Config.h"
-
-MessageManager::Slot::~Slot() {
-    reset();
-}
-
-void MessageManager::Slot::set(const HeartMessage& message) {
-    reset();
-    new (storage_) HeartMessage(message);
-    present_ = true;
-}
-
-void MessageManager::Slot::reset() {
-    if (present_) {
-        reinterpret_cast<HeartMessage*>(storage_)->~HeartMessage();
-        present_ = false;
-    }
-}
-
-const HeartMessage* MessageManager::Slot::get() const {
-    if (!present_) {
-        return nullptr;
-    }
-
-    return reinterpret_cast<const HeartMessage*>(storage_);
-}
 
 bool MessageManager::receive(const HeartMessage& message) {
     if (!isValid(message)) {
@@ -49,6 +22,10 @@ bool MessageManager::revealPending() {
     pending_.reset();
 
     return true;
+}
+
+void MessageManager::restoreCurrent(const HeartMessage& message) {
+    current_.set(message);
 }
 
 bool MessageManager::hasPending() const {

@@ -21,6 +21,7 @@
 #include "State/DeviceEvent.h"
 #include "State/DeviceState.h"
 #include "State/StateMachine.h"
+#include "Storage/MessageStorage.h"
 #include "Touch/TouchSensor.h"
 
 class Application {
@@ -30,11 +31,16 @@ public:
         Led& led,
         TouchSensor& touch,
         MessageSource& messageSource,
+        MessageStorage& storage,
         Clock& clock
     );
 
     /**
      * @brief Runs the device from DeviceState::Boot.
+     *
+     * Restores the Current Message from storage, if one was persisted
+     * before the last power cycle, before the state machine is fed its
+     * first event.
      *
      * @param provisioned Whether the heart already has a usable network and
      * Pairing. Chooses whether Boot leads to Waking or Setup.
@@ -83,10 +89,21 @@ private:
 
     void enterState(DeviceState state);
 
+    /**
+     * @brief Resolves and shows the Current Message.
+     *
+     * Used both for DeviceState::DisplayingMessage and for
+     * DeviceState::WaitingForMessage when a message was restored from
+     * storage, so a recipient never sees the waiting screen while a
+     * message is available to show.
+     */
+    void showCurrentMessage();
+
     DisplayRenderer& renderer_;
     Led& led_;
     TouchSensor& touch_;
     MessageSource& messageSource_;
+    MessageStorage& storage_;
     Clock& clock_;
 
     StateMachine stateMachine_;

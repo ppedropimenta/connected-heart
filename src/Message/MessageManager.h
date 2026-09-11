@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "HeartMessage.h"
+#include "HeartMessageSlot.h"
 
 /**
  * @brief Stores the currently displayed message and the next pending message.
@@ -40,6 +41,15 @@ public:
      */
     bool revealPending();
 
+    /**
+     * @brief Restores a message as the Current Message, e.g. loaded from
+     * storage on boot.
+     *
+     * Unlike revealPending(), this does not touch the Pending Message: it
+     * exists for restoring state that was never part of a reveal.
+     */
+    void restoreCurrent(const HeartMessage& message);
+
     bool hasPending() const;
 
     bool hasCurrent() const;
@@ -65,38 +75,10 @@ public:
 
 private:
     /**
-     * @brief Holds at most one HeartMessage without heap allocation.
-     *
-     * HeartMessage has no default constructor, so it cannot sit in a plain
-     * member to represent "no message" — absence is tracked by this slot
-     * being empty, not by an in-band invalid message value. This would be
-     * std::optional<HeartMessage>, but this project's toolchain builds at
-     * -std=gnu++11, which predates it.
-     */
-    class Slot {
-    public:
-        Slot() = default;
-        ~Slot();
-
-        Slot(const Slot&) = delete;
-        Slot& operator=(const Slot&) = delete;
-
-        void set(const HeartMessage& message);
-        void reset();
-
-        [[nodiscard]] bool present() const { return present_; }
-        [[nodiscard]] const HeartMessage* get() const;
-
-    private:
-        alignas(HeartMessage) unsigned char storage_[sizeof(HeartMessage)];
-        bool present_ = false;
-    };
-
-    /**
      * @brief Checks whether a received message satisfies the model rules.
      */
     static bool isValid(const HeartMessage& message);
 
-    Slot pending_;
-    Slot current_;
+    HeartMessageSlot pending_;
+    HeartMessageSlot current_;
 };

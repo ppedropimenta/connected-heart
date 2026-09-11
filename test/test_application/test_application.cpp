@@ -10,6 +10,7 @@
 #include "fakes/FakeDisplayRenderer.h"
 #include "fakes/FakeLed.h"
 #include "fakes/FakeMessageSource.h"
+#include "fakes/FakeMessageStorage.h"
 #include "fakes/FakeTouchSensor.h"
 
 void setUp() {}
@@ -24,8 +25,9 @@ namespace {
         FakeLed led;
         FakeTouchSensor touch;
         FakeMessageSource messageSource;
+        FakeMessageStorage storage;
         FakeClock clock;
-        Application app{renderer, led, touch, messageSource, clock};
+        Application app{renderer, led, touch, messageSource, storage, clock};
 
         /**
          * @brief Begins the application already provisioned, landing in
@@ -225,6 +227,66 @@ void test_predefined_message_resolves_to_catalog_wording() {
     TEST_ASSERT_EQUAL_STRING("Bom dia, meu amor!", fixture.renderer.lastMessageText.c_str());
 }
 
+void test_revealing_a_message_persists_it_as_the_current_message() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    reveal(fixture);
+
+    TEST_ASSERT_EQUAL(1, fixture.storage.saveCount);
+
+    const HeartMessage* persisted = fixture.storage.loadCurrentMessage();
+    TEST_ASSERT_NOT_NULL(persisted);
+    TEST_ASSERT_EQUAL_STRING("Primeira mensagem", persisted->text());
+}
+
+void test_receiving_a_pending_message_does_not_write_storage() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage(Feeling::Love));
+    fixture.app.update();
+
+    TEST_ASSERT_EQUAL(0, fixture.storage.saveCount);
+    TEST_ASSERT_NULL(fixture.storage.loadCurrentMessage());
+}
+
+void test_storage_is_not_written_again_while_the_current_message_is_unchanged() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Primeira mensagem"));
+    fixture.app.update();
+
+    reveal(fixture);
+    TEST_ASSERT_EQUAL(1, fixture.storage.saveCount);
+
+    for (int i = 0; i < 5; ++i) {
+        fixture.app.update();
+    }
+
+    TEST_ASSERT_EQUAL(1, fixture.storage.saveCount);
+}
+
+void test_restored_message_is_displayed_instead_of_the_waiting_screen() {
+    FakeDisplayRenderer renderer;
+    FakeLed led;
+    FakeTouchSensor touch;
+    FakeMessageSource messageSource;
+    FakeMessageStorage storage;
+    FakeClock clock;
+
+    storage.seedCurrentMessage(HeartMessage("Ainda aqui"));
+
+    Application app{renderer, led, touch, messageSource, storage, clock};
+
+    app.begin(true);
+    app.notifyConnectionEstablished();
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Ainda aqui", renderer.lastMessageText.c_str());
+}
+
 void test_message_over_limit_is_rejected() {
     Fixture fixture;
 
@@ -253,8 +315,9 @@ void test_unprovisioned_boot_starts_in_setup() {
     FakeLed led;
     FakeTouchSensor touch;
     FakeMessageSource messageSource;
+    FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, clock};
+    Application app{renderer, led, touch, messageSource, storage, clock};
 
     app.begin(false);
 
@@ -267,8 +330,9 @@ void test_provisioned_boot_starts_waking() {
     FakeLed led;
     FakeTouchSensor touch;
     FakeMessageSource messageSource;
+    FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, clock};
+    Application app{renderer, led, touch, messageSource, storage, clock};
 
     app.begin(true);
 
@@ -280,8 +344,9 @@ void test_provisioning_finished_moves_setup_to_waking() {
     FakeLed led;
     FakeTouchSensor touch;
     FakeMessageSource messageSource;
+    FakeMessageStorage storage;
     FakeClock clock;
-    Application app{renderer, led, touch, messageSource, clock};
+    Application app{renderer, led, touch, messageSource, storage, clock};
 
     app.begin(false);
     assertScreen(FakeDisplayRenderer::Screen::Setup, renderer.lastScreen);
@@ -378,6 +443,10 @@ int main(int argc, char** argv) {
     RUN_TEST(test_touch_during_reveal_does_nothing);
     RUN_TEST(test_touch_while_message_displayed_does_nothing);
     RUN_TEST(test_predefined_message_resolves_to_catalog_wording);
+    RUN_TEST(test_revealing_a_message_persists_it_as_the_current_message);
+    RUN_TEST(test_receiving_a_pending_message_does_not_write_storage);
+    RUN_TEST(test_storage_is_not_written_again_while_the_current_message_is_unchanged);
+    RUN_TEST(test_restored_message_is_displayed_instead_of_the_waiting_screen);
     RUN_TEST(test_message_over_limit_is_rejected);
     RUN_TEST(test_touch_without_pending_message_does_nothing);
     RUN_TEST(test_unprovisioned_boot_starts_in_setup);
