@@ -608,6 +608,34 @@ void test_reconnecting_clears_the_indicator() {
     assertLedPattern(LedPattern::Off, fixture.led.lastPattern);
 }
 
+void test_current_message_survives_automatic_recovery_round_trip() {
+    Fixture fixture;
+
+    fixture.messageSource.enqueue(HeartMessage("Ainda aqui"));
+    fixture.app.update();
+    reveal(fixture);
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Ainda aqui", fixture.renderer.lastMessageText.c_str());
+
+    /*
+     * The heart cannot reach the network any more and gives up, but per
+     * ADR-0004/ticket 13 this must not destroy what he wrote: the Current
+     * Message is never cleared by returning to Setup, and reappears once
+     * the recipient has re-provisioned and the connection comes back.
+     */
+    exhaustConnectionAttempts(fixture);
+    assertScreen(FakeDisplayRenderer::Screen::Setup, fixture.renderer.lastScreen);
+
+    fixture.app.notifyProvisioningFinished();
+    assertScreen(FakeDisplayRenderer::Screen::Connecting, fixture.renderer.lastScreen);
+
+    fixture.app.notifyConnectionEstablished();
+
+    assertScreen(FakeDisplayRenderer::Screen::Message, fixture.renderer.lastScreen);
+    TEST_ASSERT_EQUAL_STRING("Ainda aqui", fixture.renderer.lastMessageText.c_str());
+}
+
 void test_connection_established_resets_the_failure_count() {
     Fixture fixture;
 
@@ -659,6 +687,7 @@ int main(int argc, char** argv) {
     RUN_TEST(test_connection_error_shows_indicator_during_reveal_without_changing_led);
     RUN_TEST(test_connection_error_does_not_disturb_a_displayed_message);
     RUN_TEST(test_reconnecting_clears_the_indicator);
+    RUN_TEST(test_current_message_survives_automatic_recovery_round_trip);
     RUN_TEST(test_connection_established_resets_the_failure_count);
 
     return UNITY_END();

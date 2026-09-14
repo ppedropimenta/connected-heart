@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "App/Application.h"
+#include "Button/ResetButton.h"
 #include "Communication/CompiledPairingSource.h"
 #include "Communication/NvsPairingSource.h"
 #include "Communication/TelegramMessageSource.h"
@@ -24,6 +25,7 @@ namespace {
     GpioTouchSensor touch;
     NvsMessageStorage storage;
     ArduinoClock clock;
+    ResetButton resetButton;
 
 #ifdef USE_COMPILED_CREDENTIALS
     /*
@@ -61,6 +63,33 @@ namespace {
             app.notifyConnectionAttemptFailed();
         }
     }
+
+    /**
+     * @brief Polls the reset button and, on a long press, wipes stored
+     * credentials, pairing, and message and reboots into a factory-fresh
+     * Setup. The manual recovery path, per ADR-0004.
+     *
+     * Runs unconditionally in loop(), independent of DeviceState, so the
+     * escape hatch works even mid-provisioning.
+     */
+    void handleResetButtonEvents() {
+        resetButton.update();
+
+        if (!resetButton.wasLongPressed()) {
+            return;
+        }
+
+        LOG_WARN("Factory reset: clearing stored credentials, pairing, and message");
+
+        storage.clear();
+
+#ifndef USE_COMPILED_CREDENTIALS
+        credentialSource.clear();
+        pairingSource.clear();
+#endif
+
+        ESP.restart();
+    }
 }
 
 void setup() {
@@ -72,6 +101,7 @@ void setup() {
     display.begin();
     led.begin();
     touch.begin();
+    resetButton.begin();
     messageSource.begin();
 
 #ifdef USE_COMPILED_CREDENTIALS
@@ -92,6 +122,8 @@ void setup() {
 }
 
 void loop() {
+    handleResetButtonEvents();
+
 #ifndef USE_COMPILED_CREDENTIALS
     if (app.state() == DeviceState::Setup) {
         if (!provisioningPortal.active()) {

@@ -15,6 +15,18 @@ namespace Config
     constexpr unsigned long TouchDebounceMs = 75;
 
     /**
+     * Generic digital-input debounce, shared by inputs that aren't the
+     * touch surface (e.g. the reset button).
+     */
+    constexpr unsigned long ButtonDebounceMs = 30;
+
+    /**
+     * How long the reset button must be held before a factory reset is
+     * triggered. Provisional pending hardware/UX tuning, per ticket 13.
+     */
+    constexpr unsigned long ResetButtonHoldMs = 3000;
+
+    /**
      * Rhythm timings for the notification LED. LedPulsePeriodMs is the
      * Notification pulse referenced by ADR/spec as "the existing pulse
      * period"; the rest are provisional pending hardware tuning, per

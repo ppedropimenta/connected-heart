@@ -34,6 +34,15 @@ public:
      */
     void save(const WifiCredentials& credentials);
 
+    /**
+     * @brief Erases the stored credentials.
+     *
+     * The manual recovery path, per ADR-0004: called on a reset button
+     * long press, alongside NvsPairingSource::clear() and
+     * NvsMessageStorage::clear().
+     */
+    void clear();
+
 private:
     /**
      * @brief Back the pointers returned by credentials(), whose caller

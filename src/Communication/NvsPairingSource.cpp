@@ -76,3 +76,17 @@ void NvsPairingSource::bind(const char* chatId) {
 
     preferences.end();
 }
+
+void NvsPairingSource::clear() {
+    Preferences preferences;
+
+    if (!preferences.begin(Namespace, false)) {
+        return;
+    }
+
+    preferences.clear();
+    preferences.end();
+
+    chatId_[0] = '\0';
+    code_[0] = '\0';
+}

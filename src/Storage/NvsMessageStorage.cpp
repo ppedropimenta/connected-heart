@@ -64,3 +64,16 @@ void NvsMessageStorage::saveCurrentMessage(const HeartMessage& message) {
 
     preferences.end();
 }
+
+void NvsMessageStorage::clear() {
+    Preferences preferences;
+
+    if (!preferences.begin(Namespace, false)) {
+        return;
+    }
+
+    preferences.clear();
+    preferences.end();
+
+    cached_.reset();
+}

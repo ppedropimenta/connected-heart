@@ -46,3 +46,17 @@ void NvsCredentialSource::save(const WifiCredentials& credentials) {
 
     preferences.end();
 }
+
+void NvsCredentialSource::clear() {
+    Preferences preferences;
+
+    if (!preferences.begin(Namespace, false)) {
+        return;
+    }
+
+    preferences.clear();
+    preferences.end();
+
+    ssid_[0] = '\0';
+    password_[0] = '\0';
+}

@@ -9,7 +9,9 @@
 * Board:
  * - ESP32-C3 SuperMini
  * - ESP32-C3FN4
- * - 11 exposed GPIOs
+ * - 13 exposed GPIOs, confirmed on the bench: the header silkscreen
+ *   comment this file used to carry claimed 11 while listing 13, and
+ *   GPIO5 and GPIO20 (both now wired below) have since been proven out.
  * - Onboard blue LED connected to GPIO8
  * - BOOT button connected to GPIO9
  */
@@ -53,9 +55,26 @@ namespace Pins {
         constexpr Pin TOUCH = GPIO_0;
     }
 
-    namespace Battery {
-        constexpr Pin VOLTAGE_ADC = GPIO_0;
+    namespace ResetButton {
+        /**
+         * Not GPIO2, GPIO8, or GPIO9: all three are strapping pins, and a
+         * user-facing button on one of them drops the chip into download
+         * mode if held during power-on (ADR-0004). Not GPIO5 either: the
+         * notification LED's data line already lives there on this board's
+         * actual bench wiring (see NotificationLed above).
+         */
+        constexpr Pin BUTTON = GPIO_20;
     }
+
+    /**
+     * GPIO2 is the only pin left genuinely free on this board; it is
+     * RTC-capable. ADR-0005 also names GPIO0 as a spare, but GPIO0 is
+     * committed to Touch above on this board's actual bench wiring.
+     *
+     * No Battery namespace/pin reservation exists here: per ADR-0005 the
+     * heart is always powered, and the firmware knows nothing about a
+     * battery even if one is fitted as a hardware-only backup (ticket 13).
+     */
 
     // Onboard hardware
     /**

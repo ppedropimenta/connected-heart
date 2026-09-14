@@ -72,8 +72,14 @@ void EpaperDisplayRenderer::showSetup(const char* apSsid, const char* pairingCod
     {
         display_.setBoldFont();
 
+        /*
+         * An already-paired heart landing here arrived through ADR-0004's
+         * automatic recovery (too many failed connection attempts), not a
+         * fresh setup: the heading and instructions say so, rather than
+         * silently reusing the first-setup copy as if nothing happened.
+         */
         display_.drawCenteredText(
-            "Configuracao",
+            showCode ? "Configuracao" : "Conexao perdida",
             display_.width() / 2,
             showCode ? 18 : 38
         );
@@ -81,7 +87,7 @@ void EpaperDisplayRenderer::showSetup(const char* apSsid, const char* pairingCod
         display_.setRegularFont();
 
         display_.drawCenteredText(
-            "Conecte-se a rede:",
+            showCode ? "Conecte-se a rede:" : "Reconecte-se a rede:",
             display_.width() / 2,
             showCode ? 40 : 68
         );

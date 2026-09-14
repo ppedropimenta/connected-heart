@@ -35,6 +35,16 @@ public:
      */
     void ensureCode();
 
+    /**
+     * @brief Erases the stored pairing code and paired chat identifier.
+     *
+     * The manual recovery path, per ADR-0004: called on a reset button
+     * long press, alongside NvsCredentialSource::clear() and
+     * NvsMessageStorage::clear(). ensureCode() generates a fresh code the
+     * next time the heart boots into Setup.
+     */
+    void clear();
+
 private:
     /**
      * @brief Back the pointers returned by pairedChatId() and
