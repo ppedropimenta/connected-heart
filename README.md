@@ -25,6 +25,18 @@ One trusted person sends a message through a Telegram bot. The heart's LED start
 
 `main.cpp` is the only place where concrete drivers are wired to the `Application`. The `native` PlatformIO environment compiles everything except the hardware drivers, so the logic layer cannot accidentally depend on Arduino.
 
+## Hardware
+
+| Part | Role |
+|---|---|
+| ESP32-C3 SuperMini | MCU, Wi-Fi, USB-C power and flashing |
+| 2.13" e-paper (SSD1680-class) | Message display; keeps the image without power |
+| TTP223 capacitive touch module | Reveal gesture, through the case wall |
+| 3× WS2812B | Notification pulse |
+
+Full bill of materials with part numbers: [`hardware/BOM.md`](hardware/BOM.md).
+Schematic (KiCad 10, with a PDF) and notes on the board: [`hardware/`](hardware/).
+
 ## Design decisions
 
 | ADR | Decision | Reason |
@@ -59,19 +71,6 @@ pio run -e esp32-c3-devkitm-1 -t upload
 ```
 
 `Secrets.h` is git-ignored. Wi-Fi credentials normally come from the captive portal; `-DUSE_COMPILED_CREDENTIALS` in `platformio.ini` skips the portal for bench work.
-
-Hardware: the schematic is in `hardware/kicad/` (KiCad 10, with a PDF in `preview/`). `hardware/kicad/README.md` has the verification notes and the board layout description.
-
-## Hardware
-
-| Part | Role |
-|---|---|
-| ESP32-C3 SuperMini | MCU, Wi-Fi, USB-C power and flashing |
-| 2.13" e-paper (SSD1680-class) | Message display; keeps the image without power |
-| TTP223 capacitive touch module | Reveal gesture, through the case wall |
-| 3× WS2812B | Notification pulse |
-
-Full bill of materials with part numbers: [`hardware/BOM.md`](hardware/BOM.md).
 
 ## Status
 
