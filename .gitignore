@@ -1,2 +1,19 @@
-.pio
-src/Network/Secrets.h
+# Secrets
+firmware/src/Network/Secrets.h
+
+# Build and IDE
+.idea/
+__pycache__/
+
+# Local only, not published
+casing/
+hardware/3d-imports/
+hardware/exports/
+hardware/*.csv
+hardware/kicad/*.kicad_pcb
+hardware/kicad/*.step
+hardware/kicad/*.zip
+hardware/kicad/connected-heart.pretty/
+hardware/kicad/fp-lib-table
+hardware/kicad/gerbers/
+hardware/kicad/assembly/
