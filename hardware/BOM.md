@@ -1,6 +1,6 @@
 # BOM — carrier PCB rev A
 
-Per device. The display, touch and LED modules are off the shelf and connect to the carrier by cable.
+Per device. Carrier parts were bought from TME. The display, touch and LED modules are off the shelf and connect to the carrier by cable.
 No battery and no extra regulator: power comes from the SuperMini's USB-C and its 3.3 V LDO (ADR-0005).
 
 ## Carrier PCB
@@ -9,13 +9,13 @@ No battery and no extra regulator: power comes from the SuperMini's USB-C and it
 |---|---|---|---|---|---|
 | U1 | 1 | ESP32-C3 SuperMini | module | — | Soldered flat on the castellations, USB-C over the back edge |
 | U2 | 1 | 74AHCT1G125 | SOT-23-5 | TI SN74AHCT1G125DBVR | 3.3 V → 5 V for the LED data line |
-| R1 | 1 | 330 Ω 1% | 0603 | Yageo RC0603FR-07330RL | Series resistor on LED data, next to U2 |
-| C1 | 1 | 220 µF 10 V polymer | SMD 6.3 mm | Würth 875105244013 | Bulk cap on 5 V |
-| C2, C4 | 2 | 10 µF 25 V X5R | 0805 | KYOCERA AVX KGM21AR51E106KU | 3V3 at U1 and at J3 |
-| C3, C5, C6 | 3 | 100 nF 50 V X7R | 0603 | Yageo CC0603KRX7R9BB104 | SW1, J1 and U2 decoupling |
-| SW1 | 1 | Tactile switch, side-actuated, 2.2 N | 3.5 × 2.9 mm SMD | Panasonic EVQ-P7A01P | Factory reset (GPIO20), behind a pin-hole in the back wall |
+| R1 | 1 | 330 Ω 5% | 0603 | Royalohm HP03W5J0331T5E | Series resistor on LED data, next to U2 |
+| C1 | 1 | 220 µF 10 V electrolytic, low ESR | SMD 6.3 × 5.8 mm | Panasonic EEE-FT1A221AP | Bulk cap on 5 V |
+| C2, C4 | 2 | 10 µF 25 V X5R | 0805 | Samsung CL21A106KAYNNNE | 3V3 at U1 and at J3 |
+| C3, C5, C6 | 3 | 100 nF 50 V X7R | 0603 | Samsung CL10B104KB8WPNC | SW1, J1 and U2 decoupling |
+| SW1 | 1 | Tactile switch, side-actuated, 1.6 N | 3.5 × 2.9 mm SMD | Panasonic EVQ-P7L01P | Factory reset (GPIO20), behind a pin-hole in the back wall |
 | J1, J2 | 2 | JST-PH 3-pin, vertical | THT, 2.0 mm | JST B3B-PH-K-S | J1 touch, J2 LEDs |
-| J3 | 1 | Molex PicoBlade 8-pin, vertical | THT, 1.25 mm | Molex 0530470810 | E-paper cable |
+| J3 | 1 | Molex PicoBlade 8-pin, vertical | THT, 1.25 mm | Molex 53047-0810 | E-paper cable |
 | JP1 | — | Solder jumper | — | — | Bypass for U2. Left open |
 
 ## Off-board
