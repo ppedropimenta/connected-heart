@@ -1,7 +1,7 @@
 /**
 * @file CompiledPairingSource.h
  * @brief Supplies the paired sender's chat identifier compiled into the
- * firmware, for bench work that skips pairing by code (ticket 12).
+ * firmware, for bench work that skips pairing by code.
  */
 
 #pragma once

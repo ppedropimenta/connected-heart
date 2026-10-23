@@ -48,7 +48,7 @@ void ProvisioningPortal::begin() {
     /*
      * The access point is intentionally open: asking for an AP password
      * before the configuration page can even be reached would add exactly
-     * the kind of friction this ticket exists to remove. It only stays up
+     * the kind of friction the portal exists to remove. It only stays up
      * for the short Setup window.
      */
     WiFi.mode(WIFI_AP_STA);
@@ -121,7 +121,7 @@ void ProvisioningPortal::pollConnectAttempt() {
         credentialSource_.save({pendingSsid_.c_str(), pendingPassword_.c_str()});
 
         /*
-         * Per ticket 12, Setup no longer ends the moment WiFi connects: it
+         * Setup does not end the moment WiFi connects: it
          * also waits on pairing, which can take a while if the Sender is
          * slow to send the code. WifiManager isn't handed this connection
          * until that full handoff (see justProvisioned()), so this is

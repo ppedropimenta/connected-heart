@@ -73,7 +73,7 @@ namespace Pins {
      *
      * No Battery namespace/pin reservation exists here: per ADR-0005 the
      * heart is always powered, and the firmware knows nothing about a
-     * battery even if one is fitted as a hardware-only backup (ticket 13).
+     * battery even if one is fitted as a hardware-only backup.
      */
 
     // Onboard hardware

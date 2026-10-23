@@ -37,7 +37,7 @@ public:
      * @param apSsid Name of the access point the heart is offering, so the
      * recipient knows which network to join.
      * @param pairingCode The code the Sender must send the bot to claim
-     * this heart, per ticket 12. An empty string means the heart is
+     * this heart (ADR-0004). An empty string means the heart is
      * already paired (this is a reconnect, not a fresh setup), in which
      * case no pairing code section should be shown at all.
      */

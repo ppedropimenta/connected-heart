@@ -2,7 +2,7 @@
 * @file PairingSource.h
  * @brief Interface for supplying the paired sender's chat identifier that
  * TelegramMessageSource filters incoming updates against, and for claiming
- * that identifier through pairing by code (ticket 12).
+ * that identifier through pairing by code (ADR-0004).
  *
  * This is the seam behind which a compiled-in path
  * (CompiledPairingSource, for bench work) and the pairing-by-code flow

@@ -551,8 +551,7 @@ void test_connection_error_shows_indicator_on_notification_screen_without_changi
     /*
      * The more important thing (a message is waiting) wins the LED: the
      * display already carries the indicator, so the LED doesn't duplicate
-     * it during a Notification. See spec Presentation / ADR-driven pattern
-     * precedence.
+     * it during a Notification.
      */
     assertLedPattern(LedPattern::NotificationPulse, fixture.led.lastPattern);
 }
@@ -620,7 +619,7 @@ void test_current_message_survives_automatic_recovery_round_trip() {
 
     /*
      * The heart cannot reach the network any more and gives up, but per
-     * ADR-0004/ticket 13 this must not destroy what he wrote: the Current
+     * ADR-0004 this must not destroy what he wrote: the Current
      * Message is never cleared by returning to Setup, and reappears once
      * the recipient has re-provisioned and the connection comes back.
      */

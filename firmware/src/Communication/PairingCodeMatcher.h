@@ -1,7 +1,7 @@
 /**
 * @file PairingCodeMatcher.h
  * @brief Decides whether a message sent to an unpaired heart's bot claims
- * it, per ticket 12.
+ * it (ADR-0004).
  *
  * Kept apart from TelegramMessageSource so the matching rule itself is
  * testable on the host; TelegramMessageSource is a thin Arduino/Telegram

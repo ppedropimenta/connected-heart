@@ -2,9 +2,9 @@
 * @file MessageStorage.h
  * @brief Interface for persisting the Current Message across a power cycle.
  *
- * This is the non-volatile storage seam Application depends on. Later
- * tickets extend the same facility for WiFi credentials and the paired
- * sender; this ticket introduces only the Current Message.
+ * This is the non-volatile storage seam Application depends on. The
+ * same NVS facility also holds the WiFi credentials and the paired
+ * sender; this interface covers only the Current Message.
  *
  * The Pending Message is deliberately never persisted here: an unrevealed
  * message surviving a reboot would start the heart pulsing for something

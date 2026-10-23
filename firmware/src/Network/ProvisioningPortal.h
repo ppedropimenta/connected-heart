@@ -2,7 +2,7 @@
 * @file ProvisioningPortal.h
  * @brief Captive portal that lets Setup be configured from a phone with no
  * app: an access point, a configuration page listing visible networks, a
- * password field, and the pairing code (ticket 12) so the recipient can
+ * password field, and the pairing code (ADR-0004) so the recipient can
  * relay it to her Sender while she is still setting up.
  */
 

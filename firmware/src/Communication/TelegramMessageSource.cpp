@@ -93,7 +93,7 @@ void TelegramMessageSource::handleUpdate(const telegramMessage& message) {
 void TelegramMessageSource::handlePairingAttempt(const telegramMessage& message) {
     if (!PairingCodeMatcher::matches(pairingSource_.pairingCode(), message.text.c_str())) {
         /*
-         * Silent per ticket 12: a wrong code binds nothing and gets no
+         * Silent by design: a wrong code binds nothing and gets no
          * reply, so a stranger who finds the bot before pairing learns
          * nothing from it.
          */

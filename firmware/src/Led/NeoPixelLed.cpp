@@ -11,8 +11,8 @@ namespace {
 
     /*
      * Deliberately dim: NotificationPulse runs unattended for hours,
-     * potentially in a dark bedroom. Provisional pending hardware tuning,
-     * per ticket 06.
+     * potentially in a dark bedroom. Provisional pending hardware
+     * tuning.
      */
     constexpr uint8_t NOTIFICATION_MAX_BRIGHTNESS = 40;
 

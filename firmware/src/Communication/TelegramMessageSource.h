@@ -12,13 +12,13 @@
  * The paired sender's chat identifier comes from a PairingSource. While
  * unpaired (PairingSource::isPaired() false), every update is instead
  * checked against PairingSource::pairingCode() through PairingCodeMatcher
- * per ticket 12: a match claims the chat via PairingSource::bind() and is
+ * (ADR-0004): a match claims the chat via PairingSource::bind() and is
  * acknowledged, and anything else — a wrong code, an empty message,
  * unsupported content — is silently discarded, so a stranger who finds
  * the bot before pairing learns nothing from it. CompiledPairingSource,
  * for bench work, is always already paired and never takes this path.
  *
- * Per ADR-0002 and ticket 10, the bot also replies to the sender once
+ * Per ADR-0002, the bot also replies to the sender once
  * paired: an update with no usable text (empty, or unsupported content
  * such as a photo, sticker, or voice note) is rejected immediately in
  * handleUpdate(); an update that resolves to a HeartMessage is
@@ -51,7 +51,7 @@ public:
      * outlive this object.
      * @param pairingSource Supplies the paired sender's chat identifier,
      * queried fresh on every update so a pairing completed after
-     * construction (ticket 12) takes effect without restarting the
+     * construction takes effect without restarting the
      * heart. Must outlive this object.
      */
     TelegramMessageSource(const char* botToken, PairingSource& pairingSource);

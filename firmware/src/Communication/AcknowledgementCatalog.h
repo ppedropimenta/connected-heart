@@ -1,7 +1,7 @@
 /**
 * @file AcknowledgementCatalog.h
  * @brief Brazilian Portuguese wording for the Telegram bot's
- * acknowledgements and rejections, per ADR-0002 and ticket 10.
+ * acknowledgements and rejections, per ADR-0002.
  *
  * Kept apart from TelegramMessageSource, which wraps a third-party library
  * and is not unit tested, so this wording is testable on the host.
@@ -39,7 +39,7 @@ public:
     static const char* rejectedNotText();
 
     /**
-     * @brief The correct pairing code was received, per ticket 12.
+     * @brief The correct pairing code was received (ADR-0004).
      *
      * A wrong code gets no reply at all: a stranger who finds the bot
      * before pairing should learn nothing from it.

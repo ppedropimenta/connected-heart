@@ -8,8 +8,8 @@ namespace Config
      * How long the heart-alone reveal screen holds before the message is
      * drawn. Each full e-paper refresh already takes roughly two seconds,
      * so this is a deliberate pause on top of that anticipation, not the
-     * whole of it. Provisional pending confirmation on the real panel;
-     * see ticket 05.
+     * whole of it. Provisional pending confirmation on the real
+     * panel.
      */
     constexpr unsigned long RevealDurationMs = 400;
     constexpr unsigned long TouchDebounceMs = 75;
@@ -22,15 +22,14 @@ namespace Config
 
     /**
      * How long the reset button must be held before a factory reset is
-     * triggered. Provisional pending hardware/UX tuning, per ticket 13.
+     * triggered. Provisional pending hardware/UX tuning.
      */
     constexpr unsigned long ResetButtonHoldMs = 3000;
 
     /**
      * Rhythm timings for the notification LED. LedPulsePeriodMs is the
-     * Notification pulse referenced by ADR/spec as "the existing pulse
-     * period"; the rest are provisional pending hardware tuning, per
-     * ticket 06.
+     * Notification pulse period; the rest are provisional pending
+     * hardware tuning.
      */
     constexpr unsigned long LedPulsePeriodMs = 1600;
     constexpr unsigned long LedSetupBreathePeriodMs = 3200;
@@ -50,7 +49,7 @@ namespace Config
      * How long WifiManager waits between reconnection attempts while
      * disconnected. Combined with MaxConsecutiveConnectionFailures this sets
      * how long the heart tries before giving up and returning to Setup;
-     * provisional pending hardware tuning, per ticket 08.
+     * provisional pending hardware tuning.
      */
     constexpr unsigned long WifiRetryIntervalMs = 30000;
 
