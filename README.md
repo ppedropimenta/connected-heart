@@ -4,12 +4,11 @@ A small receive-only messaging device: C++ firmware for an ESP32-C3, a custom ca
 
 One trusted person sends a message through a Telegram bot. The heart's LED starts to pulse; when the recipient touches it, the message appears on a 2.13" e-paper display and stays there until the next one arrives. The heart never sends anything back.
 
-<!-- TODO: photo of the finished device here (front, LED lit) -->
-<!-- ![Connected Heart](docs/images/device.jpg) -->
+![Connected Heart, waiting for a message](docs/images/device.jpg)
 
-| Carrier PCB (top) | Carrier PCB (bottom) |
-|---|---|
-| ![PCB top](hardware/kicad/preview/board-top.png) | ![PCB bottom](hardware/kicad/preview/board-bottom.png) |
+| Inside: carrier PCB in the base, display, touch and LED modules in the shell | Carrier PCB rev A, connector side | Carrier PCB rev A, SuperMini side |
+|---|---|---|
+| ![Opened enclosure](docs/images/inside.jpg) | ![Carrier PCB, connector side](docs/images/carrier-front.jpg) | ![Carrier PCB, SuperMini side](docs/images/carrier-back.jpg) |
 
 ## Highlights
 
@@ -53,7 +52,10 @@ Terms like Recipient, Sender, Pending Message and Reveal are defined in the [glo
 ```
 firmware/   PlatformIO project (C++, Arduino framework), unit tests, ADRs
 hardware/   BOM, pin map, design notes, KiCad schematic
+docs/       Photos
 ```
+
+The board layout, fabrication files and enclosure CAD are not published.
 
 ## Build and test
 
