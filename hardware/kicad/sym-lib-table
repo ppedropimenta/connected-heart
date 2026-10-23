@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "connected-heart")(type "KiCad")(uri "${KIPRJMOD}/connected-heart.kicad_sym")(options "")(descr "Connected Heart project symbols"))
+)
