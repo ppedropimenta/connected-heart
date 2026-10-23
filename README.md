@@ -78,6 +78,9 @@ Built and working: carrier PCB rev A fabricated, assembled and mounted in the en
 feature-complete for v1 (provisioning, pairing, Telegram delivery, reveal, persistence, recovery); a few
 display/UI refinements are still open.
 
+A possible next step is a dedicated app for sending messages, with a backend that replaces the Telegram bot
+(see ADR-0003).
+
 ## Tech
 
 C++ (gnu++11) · ESP32-C3 · PlatformIO · Arduino · GxEPD2 · Adafruit NeoPixel · UniversalTelegramBot · ArduinoJson · Unity (tests) · KiCad 10
