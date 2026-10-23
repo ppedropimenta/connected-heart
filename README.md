@@ -83,8 +83,9 @@ Full bill of materials with part numbers: [`hardware/BOM.md`](hardware/BOM.md).
 
 ## Status
 
-<!-- TODO: update to the real state before publishing -->
-Firmware feature-complete for v1 (provisioning, pairing, Telegram delivery, reveal, persistence, recovery). Carrier PCB rev A designed and verified; enclosure v1.3.
+Built and working: carrier PCB rev A fabricated, assembled and mounted in the enclosure (v1.3). Firmware is
+feature-complete for v1 (provisioning, pairing, Telegram delivery, reveal, persistence, recovery); a few
+display/UI refinements are still open.
 
 ## Tech
 
