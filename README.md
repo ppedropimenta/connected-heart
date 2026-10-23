@@ -21,17 +21,7 @@ One trusted person sends a message through a Telegram bot. The heart's LED start
 
 ## Architecture
 
-```
-            ┌───────────────────────── Application ─────────────────────────┐
-            │  StateMachine · MessageManager · LedPatternSelector · Catalog │
-            └──┬─────────┬──────────┬──────────┬──────────┬──────────┬──────┘
-               │         │          │          │          │          │
-        DisplayRenderer  Led   TouchSensor MessageSource MessageStorage Clock   ← interfaces
-               │         │          │          │          │          │
-  on device:  E-paper  NeoPixel   GPIO     Telegram /    NVS       Arduino
-              (GxEPD2)            (TTP223)   Serial
-  on host:     Fake      Fake      Fake       Fake        Fake       Fake      ← test/fakes
-```
+[![Architecture](docs/images/architecture.drawio.svg)](docs/images/architecture.drawio.svg)
 
 `main.cpp` is the only place where concrete drivers are wired to the `Application`. The `native` PlatformIO environment compiles everything except the hardware drivers, so the logic layer cannot accidentally depend on Arduino.
 
