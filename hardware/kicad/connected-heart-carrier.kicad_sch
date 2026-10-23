@@ -5410,7 +5410,7 @@
 		)
 		(uuid "08da2ce5-0a6b-5132-afad-fb4a768ed2ba")
 	)
-	(text "WS2812B needs V_IH >= 3.5 V at 5 V; 3.3 V drive usually works but is out of spec.\nFirst boards: leave U2/C6 off and close JP1. If any unit glitches, fit U2 and open JP1."
+	(text "WS2812B needs V_IH >= 3.5 V at 5 V; 3.3 V drive usually works but is out of spec.\nFit U2 and C6, leave JP1 open. JP1 is a bypass only: fit U2 or JP1, never both."
 		(exclude_from_sim no)
 		(at 139.7 92.71 0)
 		(effects
