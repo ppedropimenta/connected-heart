@@ -30,11 +30,10 @@ No battery and no extra regulator: power comes from the SuperMini's USB-C and it
 
 ## Notes
 
-- **U2:** WS2812B needs V_IH ≥ 0.7 × VDD = 3.5 V at 5 V, and the ESP32-C3 outputs 3.3 V. It often works
-  without a level shifter, but that is out of spec. JP1 is only there to bypass U2 if needed; never
-  fit both.
+- **U2:** The LEDs run on 5 V, and at 5 V the WS2812B needs at least 3.5 V (0.7 × VDD) to read a high.
+  The ESP32-C3 only gives 3.3 V. It usually works anyway, but I didn't want to depend on something out of
+  spec, so I added a level shifter. JP1 is a bypass in case I want to leave U2 out; only one of them is
+  fitted.
 - **C1:** there is no battery, so C1 covers the current peaks (Wi-Fi TX plus LEDs) on the 5 V rail.
-- Order the SOT-23-5 version of the 74AHCT1G125 (`DBVR` / `GV`). The SOT-353 version (`GW`) does not
-  fit the footprint.
 - Not on the board because the modules already have them: USB-C CC resistors, 3.3 V regulator, e-paper
   boost circuit, pull-ups on the display lines, LED decoupling. GPIO20 uses the internal pull-up.
