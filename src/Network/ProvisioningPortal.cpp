@@ -11,7 +11,7 @@ namespace {
         "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
         "<meta http-equiv=\"refresh\" content=\"2\">"
-        "<title>Coracao Conectado</title></head>"
+        "<title>Connected Heart</title></head>"
         "<body style=\"font-family:sans-serif;max-width:420px;margin:32px auto;padding:0 16px;\">"
         "<h1>Procurando redes...</h1>"
         "<p>Um instante.</p>"
@@ -29,11 +29,6 @@ namespace {
 
 }
 
-/*
- * Out-of-class definitions for the static constexpr members: the project
- * targets a pre-C++17 standard, where a reference-binding use (as DnsPort
- * gets passed into below) odr-uses the member and needs one of these.
- */
 constexpr std::uint16_t ProvisioningPortal::DnsPort;
 constexpr std::uint16_t ProvisioningPortal::HttpPort;
 
@@ -238,14 +233,14 @@ String ProvisioningPortal::buildConfigurationPage(const char* errorMessage) cons
 
     html += "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-            "<title>Coracao Conectado</title>"
+            "<title>Connected Heart</title>"
             "<style>"
             "body{font-family:sans-serif;max-width:420px;margin:32px auto;padding:0 16px;}"
             "select,input,button{width:100%;padding:10px;margin:8px 0;font-size:16px;box-sizing:border-box;}"
             "button{background:#d1477a;color:#fff;border:none;border-radius:6px;}"
             ".error{color:#b00020;}"
             "</style></head><body>";
-    html += "<h1>Configurar o Coracao Conectado</h1>";
+    html += "<h1>Configurar o Connected Heart</h1>";
 
     /*
      * Only shown while unpaired: a heart reopening this page during
@@ -253,11 +248,11 @@ String ProvisioningPortal::buildConfigurationPage(const char* errorMessage) cons
      * pairing code there would wrongly suggest re-pairing is needed.
      */
     if (!pairingSource_.isPaired()) {
-        html += "<p>Codigo de pareamento: <strong>";
+        html += "<p>Código de pareamento: <strong>";
         html += pairingSource_.pairingCode();
         html += "</strong></p>";
-        html += "<p>Peca para a pessoa que vai te mandar mensagens enviar esse "
-                "codigo para o bot no Telegram.</p>";
+        html += "<p>Peça para a pessoa que vai te mandar mensagens enviar esse "
+                "código para o bot no Telegram.</p>";
     }
 
     if (errorMessage != nullptr) {
@@ -285,7 +280,7 @@ String ProvisioningPortal::buildSuccessPage() const {
 
     html += "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-            "<title>Coracao Conectado</title></head>"
+            "<title>Connected Heart</title></head>"
             "<body style=\"font-family:sans-serif;max-width:420px;margin:32px auto;padding:0 16px;\">";
     html += "<h1>Conectado!</h1>";
 
@@ -294,10 +289,10 @@ String ProvisioningPortal::buildSuccessPage() const {
          * Recovery per ADR-0004: WiFi just came back, pairing already
          * happened long ago, so there is nothing left to wait on here.
          */
-        html += "<p>O coracao esta se conectando a sua rede. Pode fechar esta pagina.</p>";
+        html += "<p>O aparelho esta se conectando à sua rede. Pode fechar esta pagina.</p>";
     } else {
-        html += "<p>Agora peca para a pessoa que vai te mandar mensagens enviar este "
-                "codigo para o bot dela no Telegram:</p>";
+        html += "<p>Agora peça para a pessoa que vai te mandar mensagens enviar este "
+                "código para o bot dela no Telegram:</p>";
         html += "<p style=\"font-size:28px;font-weight:bold;text-align:center;\">";
         html += pairingSource_.pairingCode();
         html += "</p>";
